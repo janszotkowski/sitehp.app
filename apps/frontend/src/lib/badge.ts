@@ -1,5 +1,6 @@
 import { publicIdSchema, scoreBand, scoreColorHex, type ScanSnapshot } from '@sitehp.app/core/browser';
 import { DEFAULT_LOCALE } from '@lib/i18n/switchLocalePath';
+import { shareableScore } from '@lib/reportView';
 import { m } from '@paraglide/messages.js';
 
 // A badge is language-neutral and is drawn outside the page's locale middleware, so the language is always the default one.
@@ -20,8 +21,8 @@ export type BadgeState = { kind: 'score'; score: number } | { kind: 'scanning' }
 
 export const badgeStateOf = (snapshot: Pick<ScanSnapshot, 'status' | 'score' | 'selectedChecks'>): BadgeState => {
     if (snapshot.status === 'running') return { kind: 'scanning' };
-    // A scan of a choice of checks has no HP to show off: picking only the checks a site passes would make any site a 100.
-    return snapshot.score === null || snapshot.selectedChecks !== undefined ? { kind: 'no_score' } : { kind: 'score', score: snapshot.score };
+    const score = shareableScore(snapshot);
+    return score === null ? { kind: 'no_score' } : { kind: 'score', score };
 };
 
 /** A finished report is a fixed score but can expire, so its badge is kept for an hour, not for good; a running one only briefly. */

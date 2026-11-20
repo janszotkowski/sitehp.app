@@ -4,7 +4,8 @@ import { checkText } from '@lib/checkMessages';
 import { findingSummary } from '@lib/findingSummary';
 import { guideTabs, type GuideTab } from '@lib/fixGuides';
 import type { Locale } from '@lib/i18n/switchLocalePath';
-import { effortLabel, evidenceEntries, isAttention, severityLabel, skippedReasonLabel, STATUS_RANK, type ReportRow } from '@lib/reportModel';
+import { effortLabel, evidenceEntries, severityLabel, skippedReasonLabel, type ReportRow } from '@lib/reportModel';
+import { reportSections } from '@lib/reportView';
 import { categoryTitle, groupTitle } from '@lib/reportTitles';
 import { technologyNames } from '@lib/technologyNames';
 
@@ -91,9 +92,7 @@ const categorySection = (breakdown: ScoreBreakdown, locale: Locale): string[] =>
 
 /** The report as Markdown for a person or an AI agent: a briefing, then what to fix in order, then what passed and what could not be measured. */
 export const reportAsMarkdown = (domain: string, score: number | null, rows: readonly ReportRow[], locale: Locale, info: ReportInfo): string => {
-    const todo = rows.filter(isAttention).sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || b.gain - a.gain);
-    const passed = rows.filter((row) => row.status === 'pass');
-    const unmeasured = rows.filter((row) => row.status === 'skipped' || row.status === 'running');
+    const { todo, passed, unmeasured } = reportSections(rows);
     return [
         `# Site health report: ${domain}`,
         '',
