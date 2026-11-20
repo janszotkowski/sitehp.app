@@ -1,5 +1,7 @@
 import { publicIdSchema, scoreBand, scoreColorHex, type ScanSnapshot } from '@sitehp.app/core/browser';
 import { DEFAULT_LOCALE } from '@lib/i18n/switchLocalePath';
+import { bandTitle } from '@lib/reportTitles';
+import { shareableScore } from '@lib/reportView';
 import { m } from '@paraglide/messages.js';
 
 // A badge is language-neutral and is drawn outside the page's locale middleware, so the language is always the default one.
@@ -20,8 +22,8 @@ export type BadgeState = { kind: 'score'; score: number } | { kind: 'scanning' }
 
 export const badgeStateOf = (snapshot: Pick<ScanSnapshot, 'status' | 'score' | 'selectedChecks'>): BadgeState => {
     if (snapshot.status === 'running') return { kind: 'scanning' };
-    // A scan of a choice of checks has no HP to show off: picking only the checks a site passes would make any site a 100.
-    return snapshot.score === null || snapshot.selectedChecks !== undefined ? { kind: 'no_score' } : { kind: 'score', score: snapshot.score };
+    const score = shareableScore(snapshot);
+    return score === null ? { kind: 'no_score' } : { kind: 'score', score };
 };
 
 /** A finished report is a fixed score but can expire, so its badge is kept for an hour, not for good; a running one only briefly. */
@@ -31,18 +33,10 @@ export const badgeCacheControl = (state: BadgeState): string => {
     return state.kind === 'expired' ? 'public, max-age=300' : 'public, max-age=3600';
 };
 
-const BAND_WORD = {
-    critical: () => m.method_band_critical({}, locale),
-    poor: () => m.method_band_poor({}, locale),
-    fair: () => m.method_band_fair({}, locale),
-    good: () => m.method_band_good({}, locale),
-    excellent: () => m.method_band_excellent({}, locale),
-};
-
 /** The words of a badge: what the right half says, and the full sentence for `title` and `aria-label`. */
 export const badgeText = (state: BadgeState): { value: string; title: string } => {
     if (state.kind === 'score') {
-        const word = BAND_WORD[scoreBand(state.score)]();
+        const word = bandTitle(scoreBand(state.score), DEFAULT_LOCALE);
         return { value: `${state.score} · ${word}`, title: m.badge_title({ score: state.score, band: word }, locale) };
     }
     const word =

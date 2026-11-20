@@ -1,13 +1,12 @@
 import { Resvg } from '@resvg/resvg-js';
-import { domainToUnicode, scoreBreakdown, scoreColorHex, type ScanSnapshot } from '@sitehp.app/core/browser';
+import { domainToUnicode, scoreColorHex, type ScanSnapshot } from '@sitehp.app/core/browser';
 import satori from 'satori';
 import interRegular from '@fontsource/inter/files/inter-latin-400-normal.woff?inline';
 import interSemibold from '@fontsource/inter/files/inter-latin-600-normal.woff?inline';
 import interExtRegular from '@fontsource/inter/files/inter-latin-ext-400-normal.woff?inline';
 import interExtSemibold from '@fontsource/inter/files/inter-latin-ext-600-normal.woff?inline';
 import type { Locale } from '@lib/i18n/switchLocalePath';
-import { olderScoreModel } from '@lib/scanSnapshot';
-import { blockedStatus } from '@lib/reportModel';
+import { reportView } from '@lib/reportView';
 import { categoryTitle } from '@lib/reportTitles';
 import { m } from '@paraglide/messages.js';
 
@@ -80,12 +79,7 @@ const shorten = (text: string, max: number): string => (text.length > max ? `${t
  */
 export const renderOgImage = async (snapshot: ScanSnapshot, locale: Locale): Promise<Buffer> => {
     const domain = shorten(domainToUnicode(snapshot.domain), 40);
-    // An earlier model's report: today's weights would not add its categories up to its HP (see `olderScoreModel`).
-    // A scan of a choice of checks has no HP to share: picking only the checks a site passes would make any site a 100.
-    const custom = snapshot.selectedChecks !== undefined;
-    const breakdown = snapshot.status === 'running' || custom || olderScoreModel(snapshot) !== undefined ? null : scoreBreakdown(snapshot.checks);
-    const score = snapshot.status === 'completed' && !custom ? snapshot.score : null;
-    const blocked = blockedStatus(snapshot.checks);
+    const { shareScore: score, shareBreakdown: breakdown, blocked } = reportView(snapshot);
     const line =
         snapshot.status === 'running'
             ? m.og_report_running({}, { locale })

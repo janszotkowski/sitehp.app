@@ -193,7 +193,7 @@ describe.skipIf(url === undefined)('BullMQ and Redis', { timeout: 30_000 }, () =
         const workerSignal = createRedisScanSignal(workerRedis, silent);
         closers.push(workerSignal.close);
         const workerSide = buildContainer(testConfig(), { clock: { now: () => FIXED_TIME }, ids: sequentialIds(), fetcher: fakeFetcher(), database, signal: workerSignal });
-        const worker = createScanWorker(workerRedis, (job) => workerSide.scans.run(job), { prefix: name, concurrency: 2, logger: silent });
+        const worker = createScanWorker(workerRedis, (job) => workerSide.runner.run(job), { prefix: name, concurrency: 2, logger: silent });
         closers.push(worker.close);
 
         const app = createApp(api);

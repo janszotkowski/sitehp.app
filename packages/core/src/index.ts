@@ -16,6 +16,8 @@ export {
     AI_RETRIEVAL_AGENTS,
     AI_TRAINING_AGENTS,
     hostVariantOf,
+    isCompressedFile,
+    isFile,
     parseRobots,
     robotsBlockedAgents,
     robotsRefusingSignals,

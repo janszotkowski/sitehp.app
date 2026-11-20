@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { callerNetworkKey, inCidr, isPublicIp, parseCidr, type Cidr } from '@platform/net/ip.ts';
+import { callerLimits, inCidr, isPublicIp, parseCidr, type Cidr } from '@platform/net/ip.ts';
 
 describe('isPublicIp: addresses of the public internet', () => {
     it.each([
@@ -149,13 +149,29 @@ describe('parseCidr and inCidr', () => {
     });
 });
 
-describe('callerNetworkKey', () => {
+describe('callerLimits', () => {
     it.each([
-        ['2001:db8:1:2::/64', '2001:db8:1::/48'],
-        ['0:0:0:1::/64', '0:0:0::/48'],
-        ['1.2.3.4', undefined],
-        ['unknown', undefined],
-    ])('%s → %s', (key, expected) => {
-        expect(callerNetworkKey(key)).toBe(expected);
+        [
+            '2001:db8:1:2::/64',
+            [
+                { key: 'ip:2001:db8:1:2::/64', limit: 5 },
+                { key: 'ip:2001:db8:1::/48', limit: 50 },
+            ],
+        ],
+        [
+            '0:0:0:1::/64',
+            [
+                { key: 'ip:0:0:0:1::/64', limit: 5 },
+                { key: 'ip:0:0:0::/48', limit: 50 },
+            ],
+        ],
+        ['1.2.3.4', [{ key: 'ip:1.2.3.4', limit: 5 }]],
+        ['unknown', [{ key: 'ip:unknown', limit: 5 }]],
+    ])('%s', (key, expected) => {
+        expect(callerLimits(key, 5, 'ip')).toEqual(expected);
+    });
+
+    it('names the keys as they are without a prefix', () => {
+        expect(callerLimits('2001:db8:1:2::/64', 2).map((bucket) => bucket.key)).toEqual(['2001:db8:1:2::/64', '2001:db8:1::/48']);
     });
 });

@@ -2,6 +2,9 @@ import {
     AGENT_FILE_PATHS,
     hostVariantOf,
     indexingOf,
+    isCompressedFile,
+    isFile,
+    normalizeUrl,
     parseRobots,
     parseSitemap,
     assetUrlsOf,
@@ -11,26 +14,14 @@ import {
     type AddressProbe,
     type AssetSample,
     type FetchedPage,
-    type MarkdownProbe,
+    type GatheredContext,
     type ScanUrl,
     type SiteFile,
-    type SitemapSample,
 } from '@sitehp.app/core';
-import type { SiteFetcher } from '@modules/scans/ports.ts';
+import type { SiteFetchResult, SiteFetcher } from '@modules/scans/ports.ts';
 
-/** What the SEO file checks read: robots.txt, the sitemap, a few of its pages, a made-up page and the other host name. */
-export type SiteProbes = {
-    robots: SiteFile | null;
-    sitemap: SiteFile | null;
-    sitemapSample: SitemapSample[];
-    assetSample: AssetSample[];
-    llms: SiteFile | null;
-    /** The small files an agent looks for under `/.well-known/`, by path: `null` when nothing answered. */
-    agentFiles: Record<string, SiteFile | null>;
-    markdown: MarkdownProbe | null;
-    notFound: AddressProbe | null;
-    hostVariant?: AddressProbe | null;
-};
+/** What the file checks read around the page: robots.txt, the sitemap, a few of its pages, a made-up page, the other host name… */
+export type SiteProbes = Omit<GatheredContext, 'url' | 'page' | 'certificate' | 'httpProbe'>;
 
 /** How many sitemap pages are fetched: enough to see that the list is alive, few enough not to load someone else's server. */
 const SAMPLE_SIZE = 3;
@@ -92,17 +83,17 @@ export const probeSite = async (fetcher: SiteFetcher, url: ScanUrl, { finalUrl, 
     const llms = llmsPage === null ? null : asFile(`${origin}/llms.txt`, llmsPage);
     const markdown = markdownPage === null ? null : { ...asFile(url.href, markdownPage), vary: markdownPage.headers['vary'] ?? null, link: markdownPage.headers['link'] ?? null };
     const robots = robotsPage === null ? null : asFile(`${origin}/robots.txt`, robotsPage);
-    const robotsText = robots !== null && robots.status >= 200 && robots.status < 300 ? parseRobots(robots.body) : null;
+    const robotsText = robots !== null && isFile(robots) ? parseRobots(robots.body) : null;
 
     const sitemapUrl = sitemapLocation(robotsText, site.scheme, site.host);
     const sitemapPage = await fetchPage(sitemapUrl);
     const sitemap = sitemapPage === null ? null : asFile(sitemapUrl, sitemapPage);
 
     // A compressed file cannot be read as text, so it is not sampled. An index lists other sitemaps, not pages: the first of its sitemaps on this site stands in for it.
-    let info = sitemap !== null && sitemap.status >= 200 && sitemap.status < 300 && !/\.gz(?:$|\?)/i.test(sitemap.url) ? parseSitemap(sitemap.body, !sitemap.truncated) : null;
+    let info = sitemap !== null && sitemap.status >= 200 && sitemap.status < 300 && !isCompressedFile(sitemap.url) ? parseSitemap(sitemap.body, !sitemap.truncated) : null;
     if (info?.kind === 'index') {
         const child = sitemapSampleUrls(info.locations, site.host, 1)[0];
-        const childPage = child === undefined || /\.gz(?:$|\?)/i.test(child) ? null : await fetchPage(child);
+        const childPage = child === undefined || isCompressedFile(child) ? null : await fetchPage(child);
         info = childPage !== null && childPage.status >= 200 && childPage.status < 300 ? parseSitemap(childPage.body, !childPage.truncated) : null;
     }
     const sampleUrls = info?.kind === 'urlset' ? sitemapSampleUrls(info.locations, site.host, SAMPLE_SIZE) : [];
@@ -146,4 +137,52 @@ export const probeSite = async (fetcher: SiteFetcher, url: ScanUrl, { finalUrl, 
         notFound: notFoundPage === null ? null : asProbe(missing, notFoundPage),
         ...(variantPage === undefined ? {} : { hostVariant: variantPage === null ? null : asProbe(`https://${variantHost}/`, variantPage) }),
     };
+};
+
+/**
+ * The certificate a visitor is shown: of the host the page ended on when it is served over https (on the usual port), else of the
+ * host as typed. The page was fetched there through the safe fetcher, and the certificate is read through the same guarded lookup.
+ */
+const certificateHostOf = (fetched: SiteFetchResult, typedHost: string): string => {
+    if (!fetched.ok) return typedHost;
+    const final = new URL(fetched.page.finalUrl);
+    return final.protocol === 'https:' && final.port === '' ? final.hostname : typedHost;
+};
+
+/** Everything a scan learns from the site before the checks run. `fetched` and `httpEntry` are kept whole for the log and the failure reason. */
+export type GatheredSite = {
+    /** The address actually scanned: the one typed, or its http form when https did not answer and the fallback was allowed. */
+    url: ScanUrl;
+    fetched: SiteFetchResult;
+    httpEntry: SiteFetchResult;
+    context: GatheredContext;
+};
+
+/**
+ * The whole contact with the scanned site: the page and the plain-http entry point in parallel; once the page is in, the certificate and
+ * the small files around it, on the site the page ended on. All go through the given fetcher. An address typed without a scheme
+ * (`httpFallback`) was tried as https; a site that does not answer https at all (no connection, a failed handshake) gets one try over
+ * http, and is scanned there when that answers.
+ */
+export const gatherSite = async (fetcher: SiteFetcher, typed: ScanUrl, { httpFallback, signal }: { httpFallback: boolean; signal: AbortSignal }): Promise<GatheredSite> => {
+    const pageFetch = fetcher.fetchPage(typed.href, { signal }).then(async (result) => {
+        if (result.ok || !httpFallback || typed.scheme !== 'https' || (result.reason !== 'unreachable' && result.reason !== 'tls_error')) return { result, url: typed };
+        const plain = normalizeUrl(typed.href.replace(/^https:/, 'http:'));
+        const retried = plain.ok ? await fetcher.fetchPage(plain.url.href, { signal }) : result;
+        return retried.ok && plain.ok ? { result: retried, url: plain.url } : { result, url: typed };
+    });
+    const [{ result: fetched, url }, httpEntry, certificate, probes] = await Promise.all([
+        pageFetch,
+        fetcher.fetchPage(`http://${typed.host}/`, { signal }),
+        pageFetch.then(({ result }) => fetcher.inspectCertificate(certificateHostOf(result, typed.host))),
+        pageFetch.then(({ result, url: site }) => probeSite(fetcher, site, { ...(result.ok ? { finalUrl: result.page.finalUrl, page: result.page } : {}), signal })),
+    ]);
+    const context: GatheredContext = {
+        url,
+        ...(fetched.ok ? { page: fetched.page } : {}),
+        certificate,
+        httpProbe: httpEntry.ok ? { finalUrl: httpEntry.page.finalUrl, status: httpEntry.page.status } : null,
+        ...probes,
+    };
+    return { url, fetched, httpEntry, context };
 };

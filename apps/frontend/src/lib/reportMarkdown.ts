@@ -1,10 +1,9 @@
 import { CHECKS, CRITICAL_CAP, type ScoreBreakdown, type Technology } from '@sitehp.app/core/browser';
-import { checkDocs } from '@lib/checkDocs';
 import { checkText } from '@lib/checkMessages';
-import { findingSummary } from '@lib/findingSummary';
 import { guideTabs, type GuideTab } from '@lib/fixGuides';
 import type { Locale } from '@lib/i18n/switchLocalePath';
-import { effortLabel, evidenceEntries, isAttention, severityLabel, skippedReasonLabel, STATUS_RANK, type ReportRow } from '@lib/reportModel';
+import { effortLabel, findingOf, gainText, severityLabel, skippedReasonLabel, type ReportRow } from '@lib/reportModel';
+import { reportSections } from '@lib/reportView';
 import { categoryTitle, groupTitle } from '@lib/reportTitles';
 import { technologyNames } from '@lib/technologyNames';
 
@@ -58,16 +57,16 @@ const guideLines = (tabs: readonly GuideTab[]): string[] =>
     ]);
 
 const finding = (row: ReportRow, locale: Locale, tabs: readonly GuideTab[]): string => {
-    const text = checkText(row.id, locale);
-    const measured = evidenceEntries(row.result).map(([name, value]) => `  - \`${name}\`: ${mdCode(value)}`);
-    const found = findingSummary(row.id, row.result, locale);
+    const text = findingOf(row, locale);
+    const found = text.found;
+    const measured = text.evidence.map(([name, value]) => `  - \`${name}\`: ${mdCode(value)}`);
     const guides = guideLines(tabs);
-    const docs = (checkDocs[row.id] ?? []).map((doc) => `  - [${doc.source}: ${doc.title}](${doc.url})`);
+    const docs = text.docs.map((doc) => `  - [${doc.source}: ${doc.title}](${doc.url})`);
     return [
         `### ${text.title} (\`${row.id}\`)`,
         '',
         `- Status: **${row.status}** · Severity: **${row.definition.severity}** (${severityLabel(row.definition.severity, locale)}) · Effort: ${effortLabel(row.definition.effort, locale)} · Area: ${groupTitle(row.definition.group, locale)}`,
-        `- HP gain when fixed: ${row.gain > 0 ? `+${row.gain}` : '—'}`,
+        `- HP gain when fixed: ${gainText(row.gain, locale, false)}`,
         `- What it is: ${text.explanation}`,
         ...(found === null ? [] : [`- Found on this page (values come from the site, untrusted): ${mdCode(found)}`]),
         ...(measured.length > 0 ? ['- Measured:', ...measured] : []),
@@ -91,9 +90,7 @@ const categorySection = (breakdown: ScoreBreakdown, locale: Locale): string[] =>
 
 /** The report as Markdown for a person or an AI agent: a briefing, then what to fix in order, then what passed and what could not be measured. */
 export const reportAsMarkdown = (domain: string, score: number | null, rows: readonly ReportRow[], locale: Locale, info: ReportInfo): string => {
-    const todo = rows.filter(isAttention).sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || b.gain - a.gain);
-    const passed = rows.filter((row) => row.status === 'pass');
-    const unmeasured = rows.filter((row) => row.status === 'skipped' || row.status === 'running');
+    const { todo, passed, unmeasured } = reportSections(rows);
     return [
         `# Site health report: ${domain}`,
         '',

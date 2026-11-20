@@ -139,13 +139,20 @@ export const callerKey = (address: string): string => {
 };
 
 /** A /48 may use this many times the limit of one caller (a /64): room for a household or office of /64s, not for 65,536. */
-export const IPV6_NETWORK_FACTOR = 10;
+const IPV6_NETWORK_FACTOR = 10;
+
+/** The /48 an IPv6 caller key (`a:b:c:d::/64`) lies in: one holder of a /48 has 65,536 /64s. Undefined for an IPv4 caller. */
+const callerNetworkKey = (key: string): string | undefined => (key.endsWith('::/64') ? `${key.split(':').slice(0, 3).join(':')}::/48` : undefined);
 
 /**
- * The /48 an IPv6 caller key (`a:b:c:d::/64`) lies in, counted with a looser limit: one holder of a /48 has 65,536 /64s.
- * Undefined for an IPv4 caller.
+ * The counters one caller (a `callerKey`) is held to at `limit`, each key under `prefix` when one is given: the caller itself, and for
+ * IPv6 also its /48 at `IPV6_NETWORK_FACTOR` times the limit. A request is refused when any of them is full.
  */
-export const callerNetworkKey = (key: string): string | undefined => (key.endsWith('::/64') ? `${key.split(':').slice(0, 3).join(':')}::/48` : undefined);
+export const callerLimits = (key: string, limit: number, prefix?: string): Array<{ key: string; limit: number }> => {
+    const named = (name: string) => (prefix === undefined ? name : `${prefix}:${name}`);
+    const network = callerNetworkKey(key);
+    return [{ key: named(key), limit }, ...(network === undefined ? [] : [{ key: named(network), limit: limit * IPV6_NETWORK_FACTOR }])];
+};
 
 export const isPublicIp = (address: string, nat64Prefixes: readonly Cidr[] = []): boolean => {
     const family = isIP(address);

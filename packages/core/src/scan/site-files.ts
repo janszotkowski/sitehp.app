@@ -1,4 +1,14 @@
 import { decode } from './entities.ts';
+import type { SiteFile } from './page.ts';
+
+/**
+ * A file that really is one: a 2xx answer that is not an HTML page. A site that answers every path with its home page (a single-page app)
+ * returns HTML for `/robots.txt`: that is not the file. The body decides, not the type: a plain robots.txt or an XML sitemap is often served as `text/html`.
+ */
+export const isFile = (file: SiteFile): boolean => file.status >= 200 && file.status < 300 && !/^\s*<(?:!doctype html|html|head)\b/i.test(file.body.replace(/^\uFEFF/, ''));
+
+/** A compressed file (`sitemap.xml.gz`): it cannot be read as text, so it is neither parsed nor sampled. */
+export const isCompressedFile = (url: string): boolean => /\.gz(?:$|\?)/i.test(url);
 
 export type RobotsInfo = {
     /** The rules Googlebot follows (its own group, else `User-agent: *`) forbid the whole site and allow nothing back. */

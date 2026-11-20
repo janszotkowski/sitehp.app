@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AppDeps, AppEnv } from '@platform/http/types.ts';
 import { AppError } from '@platform/errors.ts';
 import { clientIp } from '@platform/http/client-ip.ts';
-import { IPV6_NETWORK_FACTOR, callerNetworkKey } from '@platform/net/ip.ts';
+import { callerLimits } from '@platform/net/ip.ts';
 import { validate } from '@platform/http/validate.ts';
 import { sseResponse } from '@platform/sse.ts';
 import type { ScansService } from '@modules/scans/application/scans-service.ts';
@@ -54,8 +54,7 @@ export const scansRoutes = ({ config, stopping }: AppDeps, scans: ScansService):
         // Unknown id: a plain 404 before any stream starts.
         await scans.get(publicId);
         const client = clientIp(c, config);
-        const network = callerNetworkKey(client);
-        const keys = [{ key: client, limit: config.SSE_MAX_STREAMS_PER_IP }, ...(network === undefined ? [] : [{ key: network, limit: config.SSE_MAX_STREAMS_PER_IP * IPV6_NETWORK_FACTOR }])];
+        const keys = callerLimits(client, config.SSE_MAX_STREAMS_PER_IP);
         const open = openStreams.get(client) ?? 0;
         if (keys.some(({ key, limit }) => (openStreams.get(key) ?? 0) >= limit)) {
             c.get('logger').warn({ publicId, open, ...(config.LOG_CLIENT_IP ? { client } : {}) }, 'stream refused');

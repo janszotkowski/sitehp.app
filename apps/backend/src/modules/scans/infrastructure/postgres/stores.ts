@@ -1,7 +1,7 @@
 import { SCORE_MODEL_VERSION, isTerminalScanEvent, type ScanEvent, type ScanSnapshot } from '@sitehp.app/core';
 import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm';
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
-import { ScanFinishedError, foldForRun, type ScanSignal, type ScanStore, type SiteLog } from '@modules/scans/ports.ts';
+import { appendEvent, type ScanSignal, type ScanStore, type SiteLog } from '@modules/scans/ports.ts';
 import { scanEvents, scans, sites } from '@modules/scans/infrastructure/postgres/schema.ts';
 
 /** Either driver: postgres.js in production, PGlite in tests. The queries are the same. */
@@ -101,19 +101,11 @@ export const createPostgresScanStore = (db: Db, pollMs = 1000, signal?: ScanSign
             return row === undefined ? undefined : withModelVersion(row);
         },
 
-        publish: async (publicId, draft, plainFold, derive, runId) => {
-            const fold = foldForRun(publicId, plainFold, runId);
+        publish: async (publicId, draft, derive, runId) => {
             const result = await db.transaction(async (tx) => {
                 const [row] = await tx.select({ snapshot: scans.snapshot }).from(scans).where(eq(scans.publicId, publicId)).for('update');
                 if (row === undefined) throw new Error(`unknown scan ${publicId}`);
-                if (row.snapshot.status !== 'running') throw new ScanFinishedError(publicId);
-                // Ids are the 1-based position in the log: the snapshot remembers the last one.
-                const lastId = Number(row.snapshot.lastEventId ?? 0);
-                const event = { ...draft, id: String(lastId + 1) } as ScanEvent;
-                let snapshot: ScanSnapshot = fold(row.snapshot, event);
-                const next = derive?.(snapshot);
-                const followUp = next === undefined ? undefined : ({ ...next, id: String(lastId + 2) } as ScanEvent);
-                if (followUp !== undefined) snapshot = fold(snapshot, followUp);
+                const { event, followUp, snapshot } = appendEvent(publicId, row.snapshot, draft, derive, runId);
                 const events = followUp === undefined ? [event] : [event, followUp];
                 await tx.insert(scanEvents).values(events.map((appended) => ({ scanId: publicId, id: Number(appended.id), type: appended.type, ts: new Date(appended.ts), event: appended })));
                 const last = followUp ?? event;

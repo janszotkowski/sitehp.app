@@ -1,6 +1,20 @@
 import { CATEGORIES, CHECKS, GROUPS, type CheckResult } from '@sitehp.app/core';
 import { describe, expect, it } from 'vitest';
-import { blockedStatus, filterCounts, matchesQuery, reportAsJson, reportRows, rowsForFilter, rowsInCategory, selectionIn, skippedReasonLabel, STATUS_RANK, topFixes } from '@lib/reportModel';
+import {
+    blockedStatus,
+    filterCounts,
+    findingOf,
+    gainText,
+    matchesQuery,
+    reportAsJson,
+    reportRows,
+    rowsForFilter,
+    rowsInCategory,
+    selectionIn,
+    skippedReasonLabel,
+    STATUS_RANK,
+    topFixes,
+} from '@lib/reportModel';
 import { categoryTitle, groupTitle } from '@lib/reportTitles';
 
 const result = (checkId: string, status: CheckResult['status'], evidence: CheckResult['evidence'] = {}, pointsLost = 0): CheckResult => {
@@ -137,5 +151,34 @@ describe('table state', () => {
         expect(selectionIn(['hsts', 'csp'], 'csp')).toBe('csp');
         expect(selectionIn(['hsts'], 'csp')).toBeUndefined();
         expect(selectionIn(['hsts'], undefined)).toBeUndefined();
+    });
+});
+
+describe('findingOf', () => {
+    it('gives every check of the registry its own words, in both languages', () => {
+        for (const locale of ['en', 'cs'] as const) {
+            for (const row of reportRows([], true)) {
+                const finding = findingOf(row, locale);
+                expect(finding.title, row.id).not.toBe(row.id);
+                expect(finding.explanation, row.id).not.toBe('');
+            }
+        }
+    });
+
+    it('carries what the check measured, with an empty value as a dash', () => {
+        const [row] = reportRows([result('hsts', 'warn', { value: 'max-age=60', note: '' })], true).filter((candidate) => candidate.id === 'hsts');
+        expect(row === undefined ? [] : findingOf(row, 'en').evidence).toEqual([
+            ['value', 'max-age=60'],
+            ['note', '—'],
+        ]);
+    });
+});
+
+describe('gainText', () => {
+    it('shows a gain with or without its unit, and a dash for nothing', () => {
+        expect(gainText(3.5, 'en')).toBe('+3.5 HP');
+        expect(gainText(3.5, 'en', false)).toBe('+3.5');
+        expect(gainText(0, 'en')).toBe('—');
+        expect(gainText(0, 'cs', false)).toBe('—');
     });
 });
