@@ -23,7 +23,7 @@ import type { Clock, IdGenerator } from '@platform/ports.ts';
 import type { RateLimiter } from '@platform/rate-limit.ts';
 import { IPV6_NETWORK_FACTOR, callerNetworkKey } from '@platform/net/ip.ts';
 import { registrableDomain } from '@platform/net/registrable-domain.ts';
-import { probeSite } from '@modules/scans/application/site-probes.ts';
+import { gatherSite } from '@modules/scans/application/site-probes.ts';
 import {
     RunTakenOverError,
     ScanFinishedError,
@@ -31,7 +31,6 @@ import {
     type ScanEventDraft,
     type ScanJob,
     type ScanStore,
-    type SiteFetchResult,
     type SiteFetcher,
     type SiteLog,
     type SiteRequestOutcome,
@@ -322,16 +321,6 @@ export const createScansService = (deps: ScansDeps) => {
         );
 
     /**
-     * The certificate a visitor is shown: of the host the page ended on when it is served over https (on the usual port), else of the
-     * host as typed. The page was fetched there through the safe fetcher, and the certificate is read through the same guarded lookup.
-     */
-    const certificateHostOf = (fetched: SiteFetchResult, typedHost: string): string => {
-        if (!fetched.ok) return typedHost;
-        const final = new URL(fetched.page.finalUrl);
-        return final.protocol === 'https:' && final.port === '' ? final.hostname : typedHost;
-    };
-
-    /**
      * The worker side: fetches the page once, runs every check, publishing an event after each, and ends with `scan.completed` (or `scan.failed` with the reason).
      * The whole run has a deadline: past it the fetches still going are aborted, the scan is failed as `timeout` and the job ends, so a site
      * that answers slowly on every probe, or a database that stops answering, cannot hold a worker slot and a report for ever.
@@ -383,22 +372,7 @@ export const createScansService = (deps: ScansDeps) => {
             const domain = snapshot.domain;
             log.info({ domain, queueWaitMs: Math.max(0, clock.now().getTime() - Date.parse(snapshot.createdAt)) }, 'scan started');
 
-            // The contact with the scanned site: the page and the plain-http entry point in parallel; once the page is in, the certificate and
-            // the small files around it (robots.txt, the sitemap, a missing page, the other host name), on the site the page ended on. All go through the safe fetcher.
-            // An address typed without a scheme was tried as https; a site that does not answer https at all (no connection, a failed handshake)
-            // gets one try over http, and is scanned there when that answers.
-            const pageFetch = deps.fetcher.fetchPage(typed.url.href, { signal }).then(async (result) => {
-                if (result.ok || httpFallback !== true || typed.url.scheme !== 'https' || (result.reason !== 'unreachable' && result.reason !== 'tls_error')) return { result, url: typed.url };
-                const plain = normalizeUrl(typed.url.href.replace(/^https:/, 'http:'));
-                const retried = plain.ok ? await deps.fetcher.fetchPage(plain.url.href, { signal }) : result;
-                return retried.ok && plain.ok ? { result: retried, url: plain.url } : { result, url: typed.url };
-            });
-            const [{ result: fetched, url }, probe, certificate, siteProbes] = await Promise.all([
-                pageFetch,
-                deps.fetcher.fetchPage(`http://${typed.url.host}/`, { signal }),
-                pageFetch.then(({ result }) => deps.fetcher.inspectCertificate(certificateHostOf(result, typed.url.host))),
-                pageFetch.then(({ result, url: site }) => probeSite(deps.fetcher, site, { ...(result.ok ? { finalUrl: result.page.finalUrl, page: result.page } : {}), signal })),
-            ]);
+            const { url, fetched, httpEntry, context } = await gatherSite(deps.fetcher, typed.url, { httpFallback: httpFallback === true, signal });
             if (signal.aborted) return;
             // Scanned over http after all: the report names the address that was scanned (the stored `url` column stays the one asked for).
             if (url.scheme !== typed.url.scheme) {
@@ -422,18 +396,18 @@ export const createScansService = (deps: ScansDeps) => {
                               totalMs: fetched.page.totalMs,
                           }
                         : { failure: fetched.reason },
-                    httpEntry: probe.ok ? { status: probe.page.status, finalScheme: probe.page.finalUrl.startsWith('https:') ? 'https' : 'http' } : { failure: probe.reason },
-                    certificate: certificate === null ? null : { authorized: certificate.authorized, error: certificate.error, daysLeft: certificate.daysLeft },
+                    httpEntry: httpEntry.ok ? { status: httpEntry.page.status, finalScheme: httpEntry.page.finalUrl.startsWith('https:') ? 'https' : 'http' } : { failure: httpEntry.reason },
+                    certificate: context.certificate === null ? null : { authorized: context.certificate.authorized, error: context.certificate.error, daysLeft: context.certificate.daysLeft },
                     files: {
-                        robots: status(siteProbes.robots),
-                        sitemap: status(siteProbes.sitemap),
-                        sitemapSampled: siteProbes.sitemapSample.length,
-                        assetsSampled: siteProbes.assetSample.length,
-                        llms: status(siteProbes.llms),
-                        agentFiles: Object.values(siteProbes.agentFiles).filter((file) => file !== null).length,
-                        markdown: siteProbes.markdown === null ? null : { status: siteProbes.markdown.status, contentType: siteProbes.markdown.contentType },
-                        notFound: status(siteProbes.notFound),
-                        otherHost: siteProbes.hostVariant === undefined ? 'none' : status(siteProbes.hostVariant),
+                        robots: status(context.robots),
+                        sitemap: status(context.sitemap),
+                        sitemapSampled: context.sitemapSample.length,
+                        assetsSampled: context.assetSample.length,
+                        llms: status(context.llms),
+                        agentFiles: Object.values(context.agentFiles).filter((file) => file !== null).length,
+                        markdown: context.markdown === null ? null : { status: context.markdown.status, contentType: context.markdown.contentType },
+                        notFound: status(context.notFound),
+                        otherHost: context.hostVariant === undefined ? 'none' : status(context.hostVariant),
                     },
                 },
                 'site contacted',
@@ -445,8 +419,7 @@ export const createScansService = (deps: ScansDeps) => {
                 log.warn({ domain, reason: fetched.reason, durationMs: elapsed() }, 'scan failed');
                 return;
             }
-            const page = fetched.ok ? fetched.page : undefined;
-            const httpProbe = probe.ok ? { finalUrl: probe.page.finalUrl, status: probe.page.status } : null;
+            const page = context.page;
 
             // For the raw view only. `set-cookie` never leaves the fetch (cookies are judged, not kept), and the size is capped.
             const headers = Object.fromEntries(
@@ -460,7 +433,7 @@ export const createScansService = (deps: ScansDeps) => {
                 await pause(deps.stepDelayMs);
                 if (signal.aborted) return;
                 const checkStartedAt = performance.now();
-                const result = await runCheck(check, { url, ...(page === undefined ? {} : { page }), certificate, httpProbe, ...siteProbes });
+                const result = await runCheck(check, context);
                 log.debug(
                     {
                         checkId: result.checkId,

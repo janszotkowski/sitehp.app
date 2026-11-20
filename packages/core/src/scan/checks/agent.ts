@@ -3,7 +3,7 @@ import { blocked } from '../gate.ts';
 import { attribute, elementsOf, visibleTextOf } from '../html.ts';
 import { WORDS } from '../limits.ts';
 import { AI_RETRIEVAL_AGENTS, AI_TRAINING_AGENTS, robotsBlockedAgents, robotsRefusingSignals } from '../site-files.ts';
-import { isFile } from './seo-files.ts';
+import { isFile } from '../site-files.ts';
 import { onHtml } from './seo-html.ts';
 
 const agent = (id: string, group: Group, severity: CheckDefinition['severity'], effort: CheckDefinition['effort'], run: CheckDefinition['run']): CheckDefinition => ({

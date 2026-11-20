@@ -1,7 +1,6 @@
 import type { CheckDefinition, CheckOutcome, Group } from '../check.ts';
 import { blocked, wallOf } from '../gate.ts';
-import type { SiteFile } from '../page.ts';
-import { parseRobots, parseSitemap, robotsVerdict, sameSite } from '../site-files.ts';
+import { isCompressedFile, isFile, parseRobots, parseSitemap, robotsVerdict, sameSite } from '../site-files.ts';
 import { hideQueryValues } from '../url.ts';
 
 const seo = (id: string, group: Group, severity: CheckDefinition['severity'], run: CheckDefinition['run']): CheckDefinition => ({
@@ -19,10 +18,6 @@ const unreachable: CheckOutcome = { status: 'skipped', evidence: {}, skippedReas
 const ok = (status: number): boolean => status >= 200 && status < 300;
 
 const turnedAway: CheckOutcome = { status: 'skipped', evidence: {}, skippedReason: 'blocked' };
-
-// A site that answers every path with its home page (a single-page app) returns HTML for `/robots.txt`: that is not the file.
-// The body decides, not the type: a plain robots.txt or an XML sitemap is often served as `text/html`.
-export const isFile = (file: SiteFile): boolean => ok(file.status) && !/^\s*<(?:!doctype html|html|head)\b/i.test(file.body.replace(/^\uFEFF/, ''));
 
 /** SEO: `robots.txt` exists and answers. A missing one only warns (search engines then crawl everything); a server error fails, because Google then stays away. Whether it blocks the page is `robots_allows_page`. */
 const robotsTxt = seo('robots_txt', 'files', 'medium', ({ robots }) => {
@@ -97,7 +92,7 @@ const sitemapHost = (loc: string, hosts: readonly string[]): 'own' | 'insecure' 
 const sitemapXml = seo('sitemap_xml', 'files', 'medium', ({ sitemap, url, page }) => {
     if (sitemap === undefined) throw new Error('this check needs the sitemap');
     if (sitemap === null) return unreachable;
-    if (/\.gz(?:$|\?)/i.test(sitemap.url)) return { status: 'skipped', evidence: { url: sitemap.url }, skippedReason: 'compressed' };
+    if (isCompressedFile(sitemap.url)) return { status: 'skipped', evidence: { url: sitemap.url }, skippedReason: 'compressed' };
     if (blocked(sitemap.status)) return turnedAway;
     if (!isFile(sitemap)) return { status: 'warn', evidence: { present: false, status: sitemap.status } };
     const info = parseSitemap(sitemap.body, !sitemap.truncated);

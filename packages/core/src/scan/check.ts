@@ -60,6 +60,12 @@ export type CheckContext = {
     hostVariant?: AddressProbe | null;
 };
 
+/**
+ * The context a real scan hands the checks: every field a check reads is gathered, so forgetting one fails to compile instead of
+ * quietly turning checks `skipped`. Only `page` (none behind a bad certificate) and `hostVariant` (a host with no other name) may be absent.
+ */
+export type GatheredContext = CheckContext & Required<Omit<CheckContext, 'page' | 'hostVariant'>>;
+
 /** A check may report itself `skipped` when there is nothing to measure; `skippedReason` then says why. */
 export type CheckOutcome = { status: Exclude<CheckStatus, 'skipped'>; evidence: Evidence } | { status: 'skipped'; evidence: Evidence; skippedReason: string };
 
