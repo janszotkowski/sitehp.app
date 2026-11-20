@@ -1,6 +1,8 @@
 import { CHECKS, fixGain, type Category, type CheckMeta, type CheckResult } from '@sitehp.app/core/browser';
-import { checkText } from '@lib/checkMessages';
+import { checkDocs, type DocLink } from '@lib/checkDocs';
+import { checkText, type CheckText } from '@lib/checkMessages';
 import { evidenceLabel, evidenceValue } from '@lib/evidenceFormat';
+import { findingSummary } from '@lib/findingSummary';
 import type { Locale } from '@lib/i18n/switchLocalePath';
 import { categoryTitle, groupTitle } from '@lib/reportTitles';
 import { statusLabel } from '@lib/statusLabel';
@@ -66,6 +68,24 @@ export const selectionIn = (shownIds: readonly string[], selectedId: string | un
 export const evidenceEntries = (result: CheckResult | undefined): Array<[string, string]> =>
     Object.entries(result?.evidence ?? {}).map(([name, value]) => [name, value === null || value === '' ? '—' : String(value)]);
 
+/** Everything the report says about one row, in one language: what the check is, what it found on this page, where to read more, what it measured. */
+export type Finding = CheckText & {
+    /** The sentence about this page, made of the measured values (untrusted: they come from the site); null when the check has none. */
+    found: string | null;
+    docs: readonly DocLink[];
+    evidence: Array<[string, string]>;
+};
+
+export const findingOf = (row: ReportRow, locale: Locale): Finding => ({
+    ...checkText(row.id, locale),
+    found: findingSummary(row.id, row.result, locale),
+    docs: checkDocs[row.id] ?? [],
+    evidence: evidenceEntries(row.result),
+});
+
+/** What fixing a check is worth, as shown: `+3 HP`, or a dash when nothing is lost. `unit: false` drops the HP where a label already names it. */
+export const gainText = (gain: number, locale: Locale, unit = true): string => (gain <= 0 ? '—' : unit ? m.report_gain({ gain }, { locale }) : `+${gain}`);
+
 export const severityLabel = (severity: CheckMeta['severity'], locale: Locale): string => {
     if (severity === 'critical') return m.severity_critical({}, { locale });
     if (severity === 'high') return m.severity_high({}, { locale });
@@ -89,16 +109,16 @@ export const matchesQuery = (row: ReportRow, query: string, locale: Locale): boo
         .split(/\s+/)
         .filter((word) => word !== '');
     if (words.length === 0) return true;
-    const text = checkText(row.id, locale);
+    const finding = findingOf(row, locale);
     const haystack = [
-        text.title,
-        text.explanation,
+        finding.title,
+        finding.explanation,
         row.id,
         groupTitle(row.definition.group, locale),
         categoryTitle(row.definition.category, locale),
         statusLabel(row.status, locale),
         severityLabel(row.definition.severity, locale),
-        ...evidenceEntries(row.result).flat(),
+        ...finding.evidence.flat(),
     ]
         .join(' ')
         .toLowerCase();

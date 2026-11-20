@@ -5,12 +5,9 @@ import { CopyButton } from '@components/CopyButton';
 import { FixGuide } from '@components/FixGuide';
 import { Disclosure } from '@components/Disclosure';
 import { StatusPill } from '@components/StatusIcon';
-import { checkDocs } from '@lib/checkDocs';
-import { checkText } from '@lib/checkMessages';
 import { evidenceLabel, evidenceValue } from '@lib/evidenceFormat';
-import { findingSummary } from '@lib/findingSummary';
 import type { Locale } from '@lib/i18n/switchLocalePath';
-import { effortLabel, evidenceEntries, severityLabel, skippedReasonLabel, type ReportRow } from '@lib/reportModel';
+import { effortLabel, findingOf, gainText, severityLabel, skippedReasonLabel, type ReportRow } from '@lib/reportModel';
 import { categoryTitle, groupTitle } from '@lib/reportTitles';
 import { m } from '@paraglide/messages.js';
 
@@ -46,10 +43,8 @@ const Fact = (props: FactProps) => (
  */
 export const FindingDetail = (props: FindingDetailProps) => {
     const { row, locale } = props;
-    const text = checkText(row.id, locale);
-    const entries = evidenceEntries(row.result);
-    const links = checkDocs[row.id] ?? [];
-    const found = findingSummary(row.id, row.result, locale);
+    const text = findingOf(row, locale);
+    const { evidence: entries, docs: links, found } = text;
     const [technical, setTechnical] = useState(false);
     const skipped = row.status === 'skipped';
 
@@ -70,7 +65,7 @@ export const FindingDetail = (props: FindingDetailProps) => {
                 <dl className={'grid grid-cols-3 divide-x border-y'}>
                     <Fact
                         label={m.report_detail_gain_label({}, { locale })}
-                        value={row.gain > 0 ? `+${row.gain}` : '—'}
+                        value={gainText(row.gain, locale, false)}
                     />
                     <Fact
                         label={m.report_detail_severity({}, { locale })}

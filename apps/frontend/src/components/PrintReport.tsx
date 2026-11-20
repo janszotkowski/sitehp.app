@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { Button, buttonVariants } from '@components/ui/button';
 import { checkText } from '@lib/checkMessages';
 import type { Locale } from '@lib/i18n/switchLocalePath';
-import { effortLabel, severityLabel, skippedReasonLabel, type ReportRow } from '@lib/reportModel';
+import { effortLabel, gainText, severityLabel, skippedReasonLabel, type ReportRow } from '@lib/reportModel';
 import { bandTitle, categoryTitle, groupTitle } from '@lib/reportTitles';
 import { utcStamp } from '@lib/reportPrint';
 import { reportView } from '@lib/reportView';
@@ -46,7 +46,7 @@ export const PrintReport = (props: PrintReportProps) => {
                     <p className={'text-caption mt-1 text-neutral-700'}>{text.explanation}</p>
                 </div>
                 <div className={'flex flex-col items-end gap-0.5 text-right'}>
-                    <span className={'text-headline font-semibold tabular-nums'}>{row.gain > 0 ? m.report_gain({ gain: row.gain }, { locale }) : '—'}</span>
+                    <span className={'text-headline font-semibold tabular-nums'}>{gainText(row.gain, locale)}</span>
                     <span className={'text-caption text-neutral-500'}>{statusLabel(row.status, locale)}</span>
                 </div>
             </li>
