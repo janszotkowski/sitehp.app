@@ -27,7 +27,7 @@ services:
     # (finished jobs are trimmed after an hour or above 1000, see bull-queue.ts); at the cap Redis refuses new writes instead of dropping jobs.
     # Password protected (`requirepass`); redis-cli reads it from REDISCLI_AUTH, so the healthcheck does not put it on a command line.
     redis:
-        image: redis:7-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+        image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
         command: ['redis-server', '--maxmemory', '256mb', '--maxmemory-policy', 'noeviction', '--requirepass', '${REDIS_PASSWORD:-sitehp}']
         environment:
             REDISCLI_AUTH: ${REDIS_PASSWORD:-sitehp}
