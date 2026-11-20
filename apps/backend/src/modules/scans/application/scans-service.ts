@@ -3,7 +3,7 @@ import { AppError } from '@platform/errors.ts';
 import { urlForLog, type Logger } from '@platform/logger.ts';
 import type { Clock, IdGenerator } from '@platform/ports.ts';
 import type { RateLimiter } from '@platform/rate-limit.ts';
-import { IPV6_NETWORK_FACTOR, callerNetworkKey } from '@platform/net/ip.ts';
+import { callerLimits } from '@platform/net/ip.ts';
 import { registrableDomain } from '@platform/net/registrable-domain.ts';
 import { publisherOf, shown } from '@modules/scans/application/publish.ts';
 import type { JobQueue, ScanStore, SiteLog, SiteRequestOutcome } from '@modules/scans/ports.ts';
@@ -65,12 +65,6 @@ export const createScansService = (deps: ScansDeps) => {
     const remember = (domain: string, outcome: SiteRequestOutcome): Promise<void> =>
         deps.siteLog.recordRequest(domain, clock.now(), outcome).catch((error: unknown) => deps.logger.warn({ err: error, domain }, 'recording a requested domain failed'));
 
-    /** The limiter buckets of one caller under `prefix`: its address, and for IPv6 its /48 with a looser limit. */
-    const callerLimitsOf = (client: string, prefix: string, perIp: number) => {
-        const network = callerNetworkKey(client);
-        return [{ key: `${prefix}:${client}`, limit: perIp }, ...(network === undefined ? [] : [{ key: `${prefix}:${network}`, limit: perIp * IPV6_NETWORK_FACTOR }])];
-    };
-
     /**
      * One scan per call makes the scanner fetch a stranger's site, so the caller's address and the domain are both limited.
      * A refused request counts against neither, so being refused for the domain does not also use up the caller's own limit.
@@ -81,14 +75,14 @@ export const createScansService = (deps: ScansDeps) => {
      */
     const enforceLimits = async (client: string, target: { domain: string; url: string | undefined } | undefined): Promise<ScanSnapshot | undefined> => {
         const { perIp, perDomain, windowMs } = deps.limits;
-        const callerLimits = callerLimitsOf(client, 'ip', perIp);
+        const callerBuckets = callerLimits(client, perIp, 'ip');
         const domainKey = target === undefined ? undefined : `domain:${target.domain}`;
-        let decision = await deps.limiter.hit([...callerLimits, ...(domainKey === undefined ? [] : [{ key: domainKey, limit: perDomain }])], windowMs);
+        let decision = await deps.limiter.hit([...callerBuckets, ...(domainKey === undefined ? [] : [{ key: domainKey, limit: perDomain }])], windowMs);
         if (decision.allowed) return undefined;
         if (decision.key === domainKey && target?.url !== undefined) {
             const recent = await store.findRecent(target.url, new Date(clock.now().getTime() - windowMs));
             if (recent !== undefined) {
-                decision = await deps.limiter.hit(callerLimits, windowMs);
+                decision = await deps.limiter.hit(callerBuckets, windowMs);
                 if (decision.allowed) {
                     deps.logger.info({ publicId: recent.publicId, domain: target.domain, ...clientField(client) }, 'recent scan reused');
                     return shown(recent);
@@ -144,7 +138,7 @@ export const createScansService = (deps: ScansDeps) => {
         if (!fresh && !customized && reuseMs > 0 && reusableUrl !== undefined) {
             // Free of the scan limit, but not unlimited: a bucket of its own, far looser, so a loop of requests cannot hammer the database.
             if (client !== undefined) {
-                const decision = await deps.limiter.hit(callerLimitsOf(client, 'reuse', deps.limits.perIp * REUSE_FACTOR), deps.limits.windowMs);
+                const decision = await deps.limiter.hit(callerLimits(client, deps.limits.perIp * REUSE_FACTOR, 'reuse'), deps.limits.windowMs);
                 if (!decision.allowed) {
                     deps.logger.warn({ reason: 'rate_limited', limit: 'reuse', domain, retryAfterSec: decision.retryAfterSec, ...clientField(client) }, 'scan refused');
                     throw new AppError('RATE_LIMITED', 'Too many scans from your address. Try again later.', undefined, decision.retryAfterSec);
