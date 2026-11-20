@@ -1,6 +1,6 @@
 import type { Config } from '@config/env.ts';
 import type { Logger } from '@platform/logger.ts';
-import type { ScansService } from '@modules/scans/application/scans-service.ts';
+import type { ScanRunner } from '@modules/scans/application/scan-runner.ts';
 
 const REAP_EVERY_MS = 60_000;
 
@@ -18,9 +18,9 @@ export const stuckAfterMs = (config: Pick<Config, 'SCAN_DEADLINE_MS'>): number =
  * it ran scans itself) instead of leaving them to wait for ever. The first pass can use a shorter age: a process that runs scans in
  * memory knows, right after it starts, that none of the stored `running` scans is its own. Returns the function that stops it.
  */
-export const startReaper = (scans: Pick<ScansService, 'reapStuck'>, logger: Pick<Logger, 'error'>, maxAgeMs: number, firstPassMaxAgeMs = maxAgeMs): (() => void) => {
+export const startReaper = (runner: Pick<ScanRunner, 'reapStuck'>, logger: Pick<Logger, 'error'>, maxAgeMs: number, firstPassMaxAgeMs = maxAgeMs): (() => void) => {
     const reap = (age: number): void => {
-        scans.reapStuck(age).catch((error: unknown) => logger.error({ err: error }, 'looking for stuck scans failed'));
+        runner.reapStuck(age).catch((error: unknown) => logger.error({ err: error }, 'looking for stuck scans failed'));
     };
     reap(firstPassMaxAgeMs);
     const timer = setInterval(() => reap(maxAgeMs), REAP_EVERY_MS);

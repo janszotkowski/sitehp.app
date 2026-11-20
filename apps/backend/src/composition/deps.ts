@@ -8,6 +8,7 @@ import type { JobQueue, ScanSignal, SiteFetcher } from '@modules/scans/ports.ts'
 import { createInlineJobQueue, createInMemoryScanStore, createInMemorySiteLog } from '@modules/scans/infrastructure/in-memory.ts';
 import type { Database } from '@modules/scans/infrastructure/postgres/connect.ts';
 import { createPostgresScanStore, createPostgresSiteLog } from '@modules/scans/infrastructure/postgres/stores.ts';
+import { createScanRunner, type ScanRunner } from '@modules/scans/application/scan-runner.ts';
 import { createScansService, type ScansService } from '@modules/scans/application/scans-service.ts';
 import type { AppDeps } from '@platform/http/types.ts';
 import { blockedBy } from '@platform/net/blocked-hosts.ts';
@@ -19,6 +20,8 @@ import { systemClock, type Clock, type IdGenerator } from '@platform/ports.ts';
 export type Container = {
     deps: AppDeps;
     scans: ScansService;
+    /** Runs the scans: a worker takes its jobs, the API runs them itself when it has no queue. */
+    runner: ScanRunner;
     /** What `GET /v1/ready` asks: the database and Redis, when this process uses them. */
     probes: ReadinessProbe[];
     /** Ends every open stream (clients resume elsewhere with Last-Event-ID), so the server can stop without waiting on them. */
@@ -64,16 +67,6 @@ export const buildContainer = (config: Config, overrides: ContainerOverrides = {
     const replayDir = config.SITE_FETCHER_REPLAY_DIR;
     const fetcher = overrides.fetcher ?? (replayDir === undefined ? createSiteFetcher(config, clock, logger) : createReplayFetcher(loadDemoSites(replayDir)));
 
-    // The queue needs the runner, and the runner needs the queue: close the loop lazily.
-    const holder: { service: ScansService | undefined } = { service: undefined };
-    const queue =
-        overrides.queue ??
-        createInlineJobQueue(
-            (job) => holder.service?.run(job) ?? Promise.resolve(),
-            (error) => logger.error({ err: error }, 'scan job failed'),
-            config.SCAN_MAX_CONCURRENT,
-        );
-
     const { database, redis } = overrides;
     const store =
         database === undefined
@@ -82,12 +75,29 @@ export const buildContainer = (config: Config, overrides: ContainerOverrides = {
     const siteLog = database === undefined ? createInMemorySiteLog() : createPostgresSiteLog(database.db);
     const rules = { tlds: config.BLOCKED_TLDS, domains: config.BLOCKED_DOMAINS };
 
+    // The runner asks the queue whether a job still exists; the in-process queue runs its jobs on the runner. Both are looked up only when called.
+    const runner = createScanRunner({
+        store,
+        siteLog,
+        fetcher,
+        isPending: (publicId) => queue.isPending(publicId),
+        clock,
+        logger,
+        stepDelayMs: config.SCAN_STEP_DELAY_MS,
+        deadlineMs: config.SCAN_DEADLINE_MS,
+    });
+    const queue =
+        overrides.queue ??
+        createInlineJobQueue(
+            (job) => runner.run(job),
+            (error) => logger.error({ err: error }, 'scan job failed'),
+            config.SCAN_MAX_CONCURRENT,
+        );
     const scans = createScansService({
         store,
         siteLog,
         blockedBy: (host) => blockedBy(host, rules),
         queue,
-        fetcher,
         ids: overrides.ids ?? secureIdGenerator,
         clock,
         logger,
@@ -95,10 +105,7 @@ export const buildContainer = (config: Config, overrides: ContainerOverrides = {
         limiter: redis === undefined ? createRateLimiter(clock) : createRedisRateLimiter(redis),
         limits: { perIp: config.SCAN_LIMIT_PER_IP, perDomain: config.SCAN_LIMIT_PER_DOMAIN, windowMs: config.SCAN_LIMIT_WINDOW_MS },
         reuseMs: config.SCAN_REUSE_MS,
-        stepDelayMs: config.SCAN_STEP_DELAY_MS,
-        deadlineMs: config.SCAN_DEADLINE_MS,
     });
-    holder.service = scans;
 
     // Retention: a report and its log are deleted once they are older than SCAN_RETENTION_MS (the in-memory store sweeps itself).
     const purge = (): void => {
@@ -127,5 +134,5 @@ export const buildContainer = (config: Config, overrides: ContainerOverrides = {
         ...(redis === undefined ? [] : [{ name: 'redis', check: () => redis.ping() }]),
     ];
 
-    return { deps, scans, probes, endStreams, close };
+    return { deps, scans, runner, probes, endStreams, close };
 };

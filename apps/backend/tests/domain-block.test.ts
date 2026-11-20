@@ -64,14 +64,12 @@ describe('a scan of a blocked domain', () => {
                 () => Promise.resolve(),
                 () => undefined,
             ),
-            fetcher: fakeFetcher(),
             ids: sequentialIds(),
             clock: { now: () => FIXED_TIME },
             logger: captureLogs().logger,
             logClient: false,
             limiter: createRateLimiter({ now: () => FIXED_TIME }),
             limits: { perIp: 100, perDomain: 100, windowMs: 60_000 },
-            stepDelayMs: 0,
         });
         for (const host of ['a1.shop.ru', 'b2.shop.ru', 'c3.other.ru']) await expect(scans.create(host)).rejects.toMatchObject({ code: 'DOMAIN_BLOCKED' });
         expect(await siteLog.list()).toEqual([expect.objectContaining({ domain: '*.ru', blockedCount: 3, scanCount: 0 })]);

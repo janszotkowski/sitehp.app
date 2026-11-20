@@ -81,7 +81,7 @@ if (database !== undefined) logger.info('database ready, migrations applied');
 
 // Without Redis this process runs the scans itself (development), so a scan stored as `running` from before a restart can never finish:
 // the first pass fails every one at once (none is in this fresh process's queue), later passes catch the rest like a worker's reaper.
-const stopReaper = redis === undefined && database !== undefined ? startReaper(container.scans, logger, stuckAfterMs(config), 0) : undefined;
+const stopReaper = redis === undefined && database !== undefined ? startReaper(container.runner, logger, stuckAfterMs(config), 0) : undefined;
 
 const server = serve({ fetch: createApp(container).fetch, port: config.PORT, hostname: config.HOST }, (address) => {
     logger.info({ port: address.port, host: config.HOST, version: config.APP_VERSION }, 'api listening');

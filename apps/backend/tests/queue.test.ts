@@ -33,27 +33,27 @@ describe('a scan whose job was lost', () => {
         const container = containerWithLostJobs();
         const { publicId } = await container.scans.create('example.com');
         clock.time += 14 * 60_000;
-        expect(await container.scans.reapStuck(900_000)).toBe(0);
+        expect(await container.runner.reapStuck(900_000)).toBe(0);
         expect(await container.scans.get(publicId)).toMatchObject({ status: 'running' });
 
         clock.time += 2 * 60_000;
-        expect(await container.scans.reapStuck(900_000)).toBe(1);
+        expect(await container.runner.reapStuck(900_000)).toBe(1);
         expect(await container.scans.get(publicId)).toMatchObject({ status: 'failed', failureReason: 'internal_error', preliminary: false });
         // Nothing left to fail the second time.
-        expect(await container.scans.reapStuck(900_000)).toBe(0);
+        expect(await container.runner.reapStuck(900_000)).toBe(0);
     });
 
     it('is left alone while its job still waits or runs, however old, and while the queue cannot tell', async () => {
         const waiting = containerWithLostJobs({ enqueue: () => Promise.resolve(), isPending: () => Promise.resolve(true) });
         const { publicId } = await waiting.scans.create('example.com');
         clock.time += 60 * 60_000;
-        expect(await waiting.scans.reapStuck(900_000)).toBe(0);
+        expect(await waiting.runner.reapStuck(900_000)).toBe(0);
         expect(await waiting.scans.get(publicId)).toMatchObject({ status: 'running' });
 
         const unreachable = containerWithLostJobs({ enqueue: () => Promise.resolve(), isPending: () => Promise.reject(new Error('redis away')) });
         const second = await unreachable.scans.create('example.com');
         clock.time += 60 * 60_000;
-        expect(await unreachable.scans.reapStuck(900_000)).toBe(0);
+        expect(await unreachable.runner.reapStuck(900_000)).toBe(0);
         expect(await unreachable.scans.get(second.publicId)).toMatchObject({ status: 'running' });
     });
 
@@ -65,9 +65,9 @@ describe('a scan whose job was lost', () => {
         const captured = captureLogs();
         const container = containerWithLostJobs(lostQueue(), slow, captured.logger);
         const { publicId } = await container.scans.create('example.com');
-        const running = container.scans.run({ publicId });
+        const running = container.runner.run({ publicId });
         clock.time += 16 * 60_000;
-        expect(await container.scans.reapStuck(900_000)).toBe(1);
+        expect(await container.runner.reapStuck(900_000)).toBe(1);
         release();
         await running;
         expect(await container.scans.get(publicId)).toMatchObject({ status: 'failed', failureReason: 'internal_error', lastEventId: '2' });
@@ -82,25 +82,25 @@ describe('a scan whose job was lost', () => {
         // An hour in the queue, then a run that has just published: not stuck.
         clock.time += 60 * 60_000;
         await createPostgresScanStore(database.db).publish(publicId, { type: 'page.fetched', ts: new Date(clock.time).toISOString(), data: { headers: {} } }, reduceScan);
-        expect(await container.scans.reapStuck(180_000)).toBe(0);
+        expect(await container.runner.reapStuck(180_000)).toBe(0);
         clock.time += 4 * 60_000;
-        expect(await container.scans.reapStuck(180_000)).toBe(1);
+        expect(await container.runner.reapStuck(180_000)).toBe(1);
         await database.close();
     });
 
     it('is failed at once when the queue gives up on its job, and a second time changes nothing', async () => {
         const container = containerWithLostJobs();
         const { publicId } = await container.scans.create('example.com');
-        await container.scans.failLost(publicId);
+        await container.runner.failLost(publicId);
         expect(await container.scans.get(publicId)).toMatchObject({ status: 'failed', failureReason: 'internal_error' });
-        await expect(container.scans.failLost(publicId)).resolves.toBeUndefined();
+        await expect(container.runner.failLost(publicId)).resolves.toBeUndefined();
     });
 
     it('is never failed by the reaper after it has finished', async () => {
         const container = testContainer();
         const { publicId } = await container.scans.create('example.com');
         await settled(container, publicId);
-        expect(await container.scans.reapStuck(0)).toBe(0);
+        expect(await container.runner.reapStuck(0)).toBe(0);
         expect(await container.scans.get(publicId)).toMatchObject({ status: 'completed' });
     });
 });
@@ -113,7 +113,7 @@ describe('a job for a scan that already ended', () => {
         await settled(container, publicId);
         const before = await container.scans.get(publicId);
 
-        await container.scans.run({ publicId });
+        await container.runner.run({ publicId });
         expect(await container.scans.get(publicId)).toEqual(before);
         expect(captured.lines().some((line) => line['msg'] === 'scan already finished, job skipped')).toBe(true);
     });
@@ -146,7 +146,7 @@ describe('a scan run by another version than the one that queued it', () => {
     it('runs with its own number of checks, and stamps its own score model version on completion', async () => {
         const { database, publicId } = await queuedBy(3);
         const container = testContainer({}, fakeFetcher(), database);
-        await container.scans.run({ publicId });
+        await container.runner.run({ publicId });
         const done = await container.scans.get(publicId);
         expect(done).toMatchObject({ status: 'completed', totalChecks: CHECKS.length });
         expect(done.checks).toHaveLength(CHECKS.length);
@@ -159,7 +159,7 @@ describe('a scan run by another version than the one that queued it', () => {
         const stale = { checkId: 'removed_check', category: 'security', layer: 'light', status: 'fail', severity: 'high', effort: 'hours', evidence: {}, pointsLost: 40 } as const;
         const { database, publicId } = await queuedBy(CHECKS.length, [{ type: 'check.completed', ts: FIXED_TIME.toISOString(), data: stale }]);
         const container = testContainer({}, fakeFetcher(), database);
-        await container.scans.run({ publicId });
+        await container.runner.run({ publicId });
         const done = await container.scans.get(publicId);
         expect(done.status).toBe('completed');
         expect(done.checks.map((check) => check.checkId)).not.toContain('removed_check');
@@ -178,7 +178,7 @@ describe('a run that another run has taken over', () => {
         const captured = captureLogs();
         const container = buildContainer(testConfig(), { clock: { now: () => FIXED_TIME }, ids: sequentialIds(), fetcher: slow, queue: lostQueue(), database, logger: captured.logger });
         const { publicId } = await container.scans.create('example.com');
-        const stale = container.scans.run({ publicId });
+        const stale = container.runner.run({ publicId });
         // While it waits on the site, BullMQ hands the job to another worker, whose run starts the scan over.
         await new Promise((resolve) => setTimeout(resolve, 10));
         const at = FIXED_TIME.toISOString();
