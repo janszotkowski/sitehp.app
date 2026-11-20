@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /hledani
+Disallow: /api/
+Disallow: /*?utm_
+
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://www.zpravy-acme.example/sitemap-news.xml

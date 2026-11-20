@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://docs.acme-cloud.example/en/</loc>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://docs.acme-cloud.example/cs/"/>
+  </url>
+  <url><loc>https://docs.acme-cloud.example/en/getting-started/</loc></url>
+  <url><loc>https://docs.acme-cloud.example/en/cli/</loc></url>
+  <url><loc>https://docs.acme-cloud.example/en/cli/install/</loc></url>
+  <url><loc>https://docs.acme-cloud.example/en/services/</loc></url>
+  <url><loc>https://docs.acme-cloud.example/en/services/scaling/</loc></url>
+  <url><loc>https://docs.acme-cloud.example/en/billing/</loc></url>
+  <url><loc>https://docs.acme-cloud.example/cs/</loc></url>
+  <url><loc>https://docs.acme-cloud.example/cs/getting-started/</loc></url>
+</urlset>

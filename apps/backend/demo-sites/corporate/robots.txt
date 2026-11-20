@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /hledat/
+Disallow: /*?print=1
+
+Sitemap: https://www.acme-group.example/sitemap.xml

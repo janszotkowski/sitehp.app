@@ -1,0 +1,37 @@
+# The GitHub Actions the workflow uses, the `node` base image in the Dockerfile, and `postgres` and `redis` in
+# docker-compose.yml. All of them are pinned (actions by commit, images by digest), so without this they would never
+# move and their fixes would never arrive. A release is proposed only once it is at least 7 days old (`cooldown`), the
+# same rule npm dependencies follow. npm dependencies are updated by hand: they are pinned exactly and pnpm enforces the
+# 7 days at install time (minimumReleaseAge in pnpm-workspace.yaml).
+version: 2
+updates:
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: monthly
+      cooldown:
+          default-days: 7
+    # A new Node version must also go into .node-version and package.json (`devEngines.runtime`) in the same pull
+    # request, or CI and the images run different versions (`pnpm policy` fails). A new major is a decision, not an
+    # update: done by hand.
+    - package-ecosystem: docker
+      directory: /
+      schedule:
+          interval: weekly
+      cooldown:
+          default-days: 7
+      ignore:
+          - dependency-name: node
+            update-types: ['version-update:semver-major']
+    # A new major of PostgreSQL needs a data migration, and one of Redis a check of BullMQ: both by hand.
+    - package-ecosystem: docker-compose
+      directory: /
+      schedule:
+          interval: weekly
+      cooldown:
+          default-days: 7
+      ignore:
+          - dependency-name: postgres
+            update-types: ['version-update:semver-major']
+          - dependency-name: redis
+            update-types: ['version-update:semver-major']

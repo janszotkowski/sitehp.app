@@ -1,0 +1,68 @@
+{
+    "$schema": "https://turborepo.dev/schema.json",
+    "tasks": {
+        "build": {
+            "dependsOn": ["^build"],
+            "inputs": ["$TURBO_DEFAULT$", ".env*"],
+            "env": ["VITE_*"],
+            "outputs": ["dist/**", ".output/**"]
+        },
+        "dev": {
+            "cache": false,
+            "persistent": true,
+            "passThroughEnv": [
+                "NODE_ENV",
+                "HOST",
+                "PORT",
+                "LOG_*",
+                "CORS_ORIGINS",
+                "APP_VERSION",
+                "FETCH_*",
+                "SCAN_*",
+                "SSE_*",
+                "MAX_OPEN_STREAMS",
+                "WORKER_HEARTBEAT_FILE",
+                "TRUSTED_PROXY_*",
+                "NAT64_PREFIXES",
+                "DATABASE_URL",
+                "REDIS_URL",
+                "BLOCKED_*",
+                "API_INTERNAL_URL",
+                "VITE_*"
+            ]
+        },
+        "typecheck": {
+            "dependsOn": ["^typecheck"]
+        },
+        "test": {
+            "dependsOn": ["^build"],
+            "env": ["REDIS_URL", "DATABASE_URL"],
+            "passThroughEnv": ["CI"]
+        },
+        "start": {
+            "dependsOn": ["build"],
+            "cache": false,
+            "persistent": true,
+            "passThroughEnv": [
+                "NODE_ENV",
+                "HOST",
+                "PORT",
+                "LOG_*",
+                "CORS_ORIGINS",
+                "APP_VERSION",
+                "FETCH_*",
+                "SCAN_*",
+                "SSE_*",
+                "MAX_OPEN_STREAMS",
+                "WORKER_HEARTBEAT_FILE",
+                "TRUSTED_PROXY_*",
+                "NAT64_PREFIXES",
+                "DATABASE_URL",
+                "REDIS_URL",
+                "BLOCKED_*",
+                "API_INTERNAL_URL",
+                "VITE_*"
+            ]
+        }
+    }
+}

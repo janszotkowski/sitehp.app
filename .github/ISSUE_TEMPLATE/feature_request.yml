@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a feature or a new check.
+labels: [enhancement]
+body:
+    - type: textarea
+      id: problem
+      attributes:
+          label: What would you like to do?
+          description: The question you want answered or the problem you want found, rather than a specific solution.
+      validations:
+          required: true
+    - type: textarea
+      id: proposal
+      attributes:
+          label: How could sitehp.app help?
+          description: A sketch of the feature or the check you have in mind.
+    - type: textarea
+      id: check
+      attributes:
+          label: For a new check
+          description: What it reads (a header, a file, the HTML), when it should pass, warn and fail, and a source for the rule (a spec, a vendor's documentation). Checks are passive only and must not probe a site for vulnerabilities.
+    - type: checkboxes
+      id: help
+      attributes:
+          label: Contributing
+          options:
+              - label: I would like to work on this myself.

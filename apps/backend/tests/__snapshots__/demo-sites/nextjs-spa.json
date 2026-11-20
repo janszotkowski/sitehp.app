@@ -1,0 +1,479 @@
+{
+    "url": "https://acme-analytics.example/",
+    "finalUrl": "https://acme-analytics.example/",
+    "scanStatus": "completed",
+    "score": 82,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blockedRetrieval": "",
+                "refusedBySignal": "",
+                "blockedTraining": ""
+            }
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "addresses": "acme-analytics.example"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "pass",
+            "evidence": {
+                "daysLeft": 78,
+                "validTo": "2026-12-26T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo Free CA R10"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "pass",
+            "evidence": {
+                "htmlEncoding": "gzip",
+                "htmlBytes": 9567,
+                "htmlTransferredBytes": 1705,
+                "filesSampled": 0,
+                "filesUncompressed": 0
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "fail",
+            "evidence": {
+                "words": 2,
+                "scripts": 8
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "coop",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "csp",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "pass",
+            "evidence": {
+                "present": true
+            }
+        },
+        {
+            "id": "h1",
+            "status": "fail",
+            "evidence": {
+                "count": 0
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "skipped",
+            "skippedReason": "no_headings",
+            "evidence": {
+                "count": 0
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "applicable": false
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "max-age=63072000",
+                "includeSubDomains": false,
+                "preload": false
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "pass",
+            "evidence": {
+                "lang": "en"
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "pass",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "https://acme-analytics.example/",
+                "status": 200
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "pass",
+            "evidence": {
+                "status": 200,
+                "redirects": 0
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "protocol_unknown",
+            "evidence": {
+                "protocol": "unknown",
+                "h3Advertised": false
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "skipped",
+            "skippedReason": "no_images",
+            "evidence": {
+                "images": 0
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "pass",
+            "evidence": {
+                "images": 0,
+                "missing": 0
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "images": 0
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "warn",
+            "evidence": {
+                "server": "Vercel",
+                "poweredBy": "Next.js"
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "warn",
+            "evidence": {
+                "blocks": 0,
+                "invalid": 0,
+                "types": "",
+                "untyped": 0,
+                "retired": ""
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "few_images",
+            "evidence": {
+                "images": 0
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "not_offered",
+            "evidence": {}
+        },
+        {
+            "id": "llms_txt",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "warn",
+            "evidence": {
+                "served": false,
+                "status": 200,
+                "contentType": "text/html; charset=utf-8"
+            }
+        },
+        {
+            "id": "meta_description",
+            "status": "warn",
+            "evidence": {
+                "length": 40,
+                "description": "Event analytics for small product teams."
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "active": 0,
+                "passive": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "pass",
+            "evidence": {
+                "meta": false,
+                "header": false
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "warn",
+            "evidence": {
+                "present": 2,
+                "missing": "og:description, og:url"
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "warn",
+            "evidence": {
+                "missing": "og:type, og:site_name, og:locale, og:image:alt",
+                "imageAbsolute": true
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "pass",
+            "evidence": {
+                "htmlBytes": 9567,
+                "htmlTransferredBytes": 1705,
+                "scripts": 8,
+                "styles": 1,
+                "images": 0,
+                "fonts": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 0,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "pass",
+            "evidence": {
+                "blockingScripts": 0,
+                "blockingStyles": 1
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "pass",
+            "evidence": {
+                "path": "/",
+                "allowed": true,
+                "rule": "Allow: /"
+            }
+        },
+        {
+            "id": "robots_txt",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blocksAll": false,
+                "sitemaps": 1
+            }
+        },
+        {
+            "id": "seo_title",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "length": 52,
+                "title": "Acme Analytics – Dashboards your team actually reads"
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "pass",
+            "evidence": {
+                "listed": 1
+            }
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "pass",
+            "evidence": {
+                "sampled": 3,
+                "failing": 0,
+                "redirected": 0,
+                "unindexable": 0,
+                "blocked": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "valid": true,
+                "kind": "urlset",
+                "addresses": 3,
+                "foreign": 0,
+                "insecure": 0,
+                "lastmod": 3,
+                "truncated": false
+            }
+        },
+        {
+            "id": "soft_404",
+            "status": "pass",
+            "evidence": {
+                "status": 404,
+                "finalUrl": "https://acme-analytics.example/sitehp-check-11111111-1111-4111-8111-111111111111",
+                "redirected": false
+            }
+        },
+        {
+            "id": "ttfb",
+            "status": "pass",
+            "evidence": {
+                "ttfbMs": 0
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "card": "summary_large_image"
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "content": "width=device-width",
+                "zoomBlocked": false
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        }
+    ]
+}

@@ -1,0 +1,458 @@
+{
+    "url": "https://acme-placeholder.example/",
+    "finalUrl": "https://acme-placeholder.example/",
+    "scanStatus": "completed",
+    "score": 70,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "skipped",
+            "skippedReason": "no_robots",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "warn",
+            "evidence": {
+                "count": 2,
+                "addresses": "acme-placeholder.example, www.acme-placeholder.example"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "pass",
+            "evidence": {
+                "daysLeft": 120,
+                "validTo": "2027-02-06T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo Global G2 TLS RSA CA"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "pass",
+            "evidence": {
+                "htmlEncoding": "gzip",
+                "htmlBytes": 1001,
+                "htmlTransferredBytes": 519,
+                "filesSampled": 0,
+                "filesUncompressed": 0
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "warn",
+            "evidence": {
+                "words": 24,
+                "scripts": 0
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "coop",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "csp",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "h1",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "h1": "Acme Placeholder Domain"
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "skips": 0
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "applicable": false
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "pass",
+            "evidence": {
+                "lang": "en"
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "fail",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "http://acme-placeholder.example/",
+                "status": 200
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "pass",
+            "evidence": {
+                "status": 200,
+                "redirects": 0
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "protocol_unknown",
+            "evidence": {
+                "protocol": "unknown",
+                "h3Advertised": false
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "skipped",
+            "skippedReason": "no_images",
+            "evidence": {
+                "images": 0
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "pass",
+            "evidence": {
+                "images": 0,
+                "missing": 0
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "images": 0
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "pass",
+            "evidence": {
+                "server": "",
+                "poweredBy": null
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "warn",
+            "evidence": {
+                "blocks": 0,
+                "invalid": 0,
+                "types": "",
+                "untyped": 0,
+                "retired": ""
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "few_images",
+            "evidence": {
+                "images": 0
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "not_offered",
+            "evidence": {}
+        },
+        {
+            "id": "llms_txt",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "warn",
+            "evidence": {
+                "served": false,
+                "status": 200,
+                "contentType": "text/html"
+            }
+        },
+        {
+            "id": "meta_description",
+            "status": "fail",
+            "evidence": {
+                "length": 0
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "active": 0,
+                "passive": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "pass",
+            "evidence": {
+                "meta": false,
+                "header": false
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "fail",
+            "evidence": {
+                "present": 0,
+                "missing": "og:title, og:description, og:image, og:url"
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "present": 0
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "pass",
+            "evidence": {
+                "htmlBytes": 1001,
+                "htmlTransferredBytes": 519,
+                "scripts": 0,
+                "styles": 0,
+                "images": 0,
+                "fonts": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 0,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "pass",
+            "evidence": {
+                "blockingScripts": 0,
+                "blockingStyles": 0
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "skipped",
+            "skippedReason": "no_robots",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "robots_txt",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "seo_title",
+            "status": "warn",
+            "evidence": {
+                "count": 1,
+                "length": 23,
+                "title": "Acme Placeholder Domain"
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "skipped",
+            "skippedReason": "no_robots",
+            "evidence": {}
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "soft_404",
+            "status": "pass",
+            "evidence": {
+                "status": 404,
+                "finalUrl": "https://acme-placeholder.example/sitehp-check-11111111-1111-4111-8111-111111111111",
+                "redirected": false
+            }
+        },
+        {
+            "id": "ttfb",
+            "status": "pass",
+            "evidence": {
+                "ttfbMs": 0
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "content": "width=device-width, initial-scale=1",
+                "zoomBlocked": false
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        }
+    ]
+}

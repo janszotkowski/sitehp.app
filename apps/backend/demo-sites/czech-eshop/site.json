@@ -1,0 +1,48 @@
+{
+    "url": "https://www.acme-obchod.example/",
+    "note": "A Czech e-shop on a hosted platform: lang cs, hreflang cs/sk/x-default including itself, Organization and WebSite JSON-LD, Open Graph but no Twitter card, cookies set without Secure, HttpOnly or SameSite (session, cart, language), HSTS and X-Frame-Options only, and a sitemap listing category addresses without the trailing slash that the shop then 301-redirects to. Tests the three cookie checks together and sitemap_urls warning about redirected entries.",
+    "certificate": { "daysLeft": 33, "issuer": "Demo Free CA R10" },
+    "responses": {
+        "https://www.acme-obchod.example/llms.txt": { "status": 404 },
+        "https://www.acme-obchod.example/": {
+            "headers": {
+                "server": "nginx",
+                "strict-transport-security": "max-age=31536000",
+                "x-frame-options": "SAMEORIGIN",
+                "cache-control": "no-store, no-cache, must-revalidate",
+                "pragma": "no-cache",
+                "content-language": "cs"
+            },
+            "file": "index.html",
+            "cookies": ["PHPSESSID=lorem1psum2dolor3sit4amet5consect; path=/", "CART_ID=7b1e4c90a2d35f68; expires=Sat, 10-Oct-2027 10:00:00 GMT; Max-Age=31536000; path=/", "lang=cs; path=/"]
+        },
+        "http://www.acme-obchod.example/": { "redirect": "https://www.acme-obchod.example/" },
+        "https://acme-obchod.example/": { "redirect": "https://www.acme-obchod.example/" },
+        "https://www.acme-obchod.example/robots.txt": { "file": "robots.txt" },
+        "https://www.acme-obchod.example/sitemap.xml": { "file": "sitemap.xml" },
+        "https://www.acme-obchod.example/kategorie/naradi": { "redirect": "/kategorie/naradi/" },
+        "https://www.acme-obchod.example/kategorie/naradi/": { "file": "category.html" },
+        "https://www.acme-obchod.example/kategorie/dilna": { "redirect": "/kategorie/dilna/" },
+        "https://www.acme-obchod.example/kategorie/dilna/": { "file": "category.html" },
+        "https://www.acme-obchod.example/kategorie/novinky": { "redirect": "/kategorie/novinky/" },
+        "https://www.acme-obchod.example/kategorie/novinky/": { "file": "category.html" },
+        "https://www.acme-obchod.example/sitehp-check-*": { "status": 404, "file": "404.html" }
+    },
+    "expect": {
+        "http_redirect": "pass",
+        "hsts": "pass",
+        "csp": "fail",
+        "cookie_secure": "fail",
+        "cookie_httponly": "warn",
+        "cookie_samesite": "warn",
+        "seo_title": "warn",
+        "html_lang": "pass",
+        "hreflang": "pass",
+        "twitter_card": "warn",
+        "json_ld": "pass",
+        "sitemap_xml": "pass",
+        "sitemap_urls": "warn",
+        "soft_404": "pass",
+        "canonical_host": "pass"
+    }
+}

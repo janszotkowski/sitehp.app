@@ -1,0 +1,60 @@
+{
+    "url": "https://cs.acmepedia.example/wiki/Hvězdná_mapa",
+    "note": "A wiki article on a large MediaWiki farm: a Server header carrying the pod name (mw-web.eqiad.main-67c8cb7f6b-bnlcb, digits but no version), sixteen hreflang alternates plus x-default including the page itself, a canonical with a percent-encoded Czech title, a proper h1 → h2 → h3 outline, Article JSON-LD, a fixed desktop viewport, no meta description, a CSP in report-only mode, cookies without SameSite and a long crawler-etiquette robots.txt with no sitemap. Tests that a pod name is not taken for a version leak and that a big hreflang set validates.",
+    "certificate": { "daysLeft": 44, "issuer": "Demo Global R3 DV CA" },
+    "responses": {
+        "https://cs.acmepedia.example/llms.txt": { "status": 404 },
+        "https://cs.acmepedia.example/wiki/Hvězdná_mapa": {
+            "headers": {
+                "content-type": "text/html; charset=UTF-8",
+                "server": "mw-web.eqiad.main-67c8cb7f6b-bnlcb",
+                "strict-transport-security": "max-age=106384710; includeSubDomains; preload",
+                "content-security-policy-report-only": "script-src 'unsafe-eval' blob: 'self' meta.acmepedia.example *.acmepedia.example 'unsafe-inline' report-sample; default-src 'self' data: blob:; style-src 'self' data: blob: 'unsafe-inline'; report-uri https://cs.acmepedia.example/w/api.php?action=cspreport&format=none",
+                "x-content-type-options": "nosniff",
+                "referrer-policy": "origin-when-cross-origin",
+                "permissions-policy": "browsing-topics=()",
+                "content-language": "cs",
+                "last-modified": "Sun, 28 Sep 2026 17:40:21 GMT",
+                "cache-control": "private, s-maxage=0, max-age=0, must-revalidate, no-transform",
+                "age": "4211",
+                "x-cache": "cp3067 hit, cp3067 hit/12",
+                "x-cache-status": "hit-front",
+                "server-timing": "cache;desc=\"hit-front\", host;desc=\"cp3067\"",
+                "accept-ch": ""
+            },
+            "file": "article.html",
+            "cookies": [
+                "WMF-Last-Access=10-Oct-2026;Path=/;HttpOnly;secure;Expires=Wed, 11 Nov 2026 00:00:00 GMT",
+                "WMF-Last-Access-Global=10-Oct-2026;Path=/;Domain=.acmepedia.example;HttpOnly;secure;Expires=Wed, 11 Nov 2026 00:00:00 GMT",
+                "GeoIP=CZ:10:Lorem:50.00:14.00:v4; Path=/; secure; Domain=.acmepedia.example"
+            ]
+        },
+        "http://cs.acmepedia.example/": { "redirect": "https://cs.acmepedia.example/" },
+        "https://cs.acmepedia.example/": { "redirect": "https://cs.acmepedia.example/wiki/Hlavní_strana" },
+        "https://cs.acmepedia.example/wiki/Hlavní_strana": { "headers": { "content-type": "text/html; charset=UTF-8" } },
+        "https://cs.acmepedia.example/robots.txt": { "headers": { "server": "mw-web.eqiad.main-67c8cb7f6b-bnlcb", "content-type": "text/plain; charset=utf-8" }, "file": "robots.txt" },
+        "https://cs.acmepedia.example/sitemap.xml": { "status": 404, "headers": { "content-type": "text/html; charset=utf-8" } },
+        "https://cs.acmepedia.example/sitehp-check-*": { "status": 404, "file": "missing.html" }
+    },
+    "expect": {
+        "info_leak": "pass",
+        "hsts": "pass",
+        "csp": "fail",
+        "cookie_secure": "pass",
+        "cookie_samesite": "warn",
+        "seo_title": "warn",
+        "meta_description": "fail",
+        "h1": "pass",
+        "viewport": "warn",
+        "html_lang": "pass",
+        "canonical": "pass",
+        "heading_order": "pass",
+        "img_alt": "pass",
+        "json_ld": "pass",
+        "hreflang": "pass",
+        "robots_txt": "pass",
+        "sitemap_in_robots": "warn",
+        "soft_404": "pass",
+        "canonical_host": "pass"
+    }
+}

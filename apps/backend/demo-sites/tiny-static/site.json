@@ -1,0 +1,43 @@
+{
+    "url": "https://acme-placeholder.example/",
+    "note": "A one-file placeholder page like the reserved example domains: a title, an h1 and two paragraphs, inline CSS, no description, no social tags, no canonical, no security headers, the same page on www and over plain http, and 404 for robots.txt and sitemap.xml. Tests the checks that need the site files when there are none (warn, not fail) and a site that answers on two host names.",
+    "certificate": { "daysLeft": 120, "issuer": "Demo Global G2 TLS RSA CA" },
+    "responses": {
+        "https://acme-placeholder.example/llms.txt": { "status": 404 },
+        "https://acme-placeholder.example/": {
+            "headers": {
+                "content-type": "text/html",
+                "etag": "\"3147526947\"",
+                "last-modified": "Thu, 17 Oct 2019 07:18:26 GMT",
+                "cache-control": "max-age=604800",
+                "expires": "Fri, 17 Oct 2026 12:00:00 GMT",
+                "vary": "Accept-Encoding"
+            },
+            "file": "index.html"
+        },
+        "http://acme-placeholder.example/": { "headers": { "content-type": "text/html" }, "file": "index.html" },
+        "https://www.acme-placeholder.example/": { "headers": { "content-type": "text/html" }, "file": "index.html" },
+        "https://acme-placeholder.example/robots.txt": { "status": 404, "headers": { "content-type": "text/html" } },
+        "https://acme-placeholder.example/sitemap.xml": { "status": 404, "headers": { "content-type": "text/html" } },
+        "https://acme-placeholder.example/sitehp-check-*": { "status": 404, "headers": { "content-type": "text/html" } }
+    },
+    "expect": {
+        "http_redirect": "fail",
+        "hsts": "fail",
+        "seo_title": "warn",
+        "meta_description": "fail",
+        "h1": "pass",
+        "canonical": "warn",
+        "open_graph": "fail",
+        "twitter_card": "warn",
+        "img_alt": "pass",
+        "favicon": "warn",
+        "json_ld": "warn",
+        "robots_txt": "warn",
+        "sitemap_xml": "warn",
+        "sitemap_in_robots": "skipped:no_robots",
+        "sitemap_urls": "skipped:no_sample",
+        "soft_404": "pass",
+        "canonical_host": "warn"
+    }
+}

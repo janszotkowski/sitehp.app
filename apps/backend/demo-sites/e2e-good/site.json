@@ -1,0 +1,42 @@
+{
+    "url": "https://example.com/",
+    "note": "The browser tests' site in good shape (apps/e2e GOOD_SITE): every header, a full head, robots.txt naming a small sitemap, a real 404, www and http redirecting to the bare https host.",
+    "certificate": { "daysLeft": 365 },
+    "responses": {
+        "https://example.com/": {
+            "headers": {
+                "server": "nginx",
+                "strict-transport-security": "max-age=31536000; includeSubDomains",
+                "content-security-policy": "default-src 'self'; base-uri 'none'; frame-ancestors 'none'",
+                "x-content-type-options": "nosniff",
+                "referrer-policy": "strict-origin-when-cross-origin",
+                "permissions-policy": "camera=(), microphone=()",
+                "cross-origin-opener-policy": "same-origin",
+                "cross-origin-embedder-policy": "require-corp",
+                "cross-origin-resource-policy": "same-origin"
+            },
+            "file": "index.html"
+        },
+        "http://example.com/": { "redirect": "https://example.com/" },
+        "https://www.example.com/": { "redirect": "https://example.com/" },
+        "https://example.com/llms.txt": { "file": "llms.txt" },
+        "https://example.com/#accept=markdown": { "file": "index.md", "headers": { "vary": "Accept" } },
+        "https://example.com/robots.txt": { "file": "robots.txt" },
+        "https://example.com/sitemap.xml": { "file": "sitemap.xml" },
+        "https://example.com/about": { "file": "about.html" },
+        "https://example.com/sitehp-check-*": { "status": 404, "headers": { "content-type": "text/html" } }
+    },
+    "expect": {
+        "https_scheme": "pass",
+        "compression": "pass",
+        "http_redirect": "pass",
+        "csp": "pass",
+        "mixed_content": "pass",
+        "seo_title": "pass",
+        "robots_txt": "pass",
+        "sitemap_urls": "pass",
+        "soft_404": "pass",
+        "canonical_host": "pass",
+        "score": 100
+    }
+}

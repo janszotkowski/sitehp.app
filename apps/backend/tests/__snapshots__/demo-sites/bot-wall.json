@@ -1,0 +1,441 @@
+{
+    "url": "https://www.acme-tickets.example/",
+    "finalUrl": "https://www.acme-tickets.example/",
+    "scanStatus": "completed",
+    "score": null,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {}
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "addresses": "www.acme-tickets.example"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "pass",
+            "evidence": {
+                "daysLeft": 83,
+                "validTo": "2026-12-31T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo Edge ECC CA-3"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "coop",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "csp",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "h1",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "pass",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "https://www.acme-tickets.example/",
+                "status": 403
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "llms_txt",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {}
+        },
+        {
+            "id": "meta_description",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 0,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {}
+        },
+        {
+            "id": "robots_txt",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {}
+        },
+        {
+            "id": "seo_title",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "skipped",
+            "skippedReason": "no_robots",
+            "evidence": {}
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {}
+        },
+        {
+            "id": "soft_404",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {}
+        },
+        {
+            "id": "ttfb",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "skipped",
+            "skippedReason": "blocked",
+            "evidence": {
+                "status": 403
+            }
+        }
+    ]
+}

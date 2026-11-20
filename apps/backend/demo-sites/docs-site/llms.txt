@@ -1,0 +1,8 @@
+# Acme Cloud documentation
+
+> Guides and references for Acme Cloud: getting started, services and the API.
+
+## Guides
+
+- [Getting started](https://docs.acme-cloud.example/en/getting-started/): create an account and deploy a first service
+- [Services](https://docs.acme-cloud.example/en/services/): what each service does and what it costs

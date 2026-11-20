@@ -1,0 +1,46 @@
+{
+    "url": "https://acme-analytics.example/",
+    "note": "A Next.js single-page app on a Vercel-like edge host: thin server markup (skeleton divs, no h1, no canonical, a short description), a large __NEXT_DATA__ JSON script, x-vercel-style headers, X-Powered-By: Next.js and long HSTS but no CSP; www and http answer with 308. Tests that a JSON script is not mistaken for content, the missing h1 and canonical, and 308 as a permanent redirect.",
+    "certificate": { "daysLeft": 78, "issuer": "Demo Free CA R10" },
+    "responses": {
+        "https://acme-analytics.example/llms.txt": { "status": 404 },
+        "https://acme-analytics.example/": {
+            "headers": {
+                "server": "Vercel",
+                "x-powered-by": "Next.js",
+                "strict-transport-security": "max-age=63072000",
+                "cache-control": "public, max-age=0, must-revalidate",
+                "age": "3127",
+                "etag": "\"a1f3c9e27b4d0e865f2c1a7b3d9e0f42\"",
+                "x-matched-path": "/",
+                "x-nextjs-prerender": "1",
+                "x-vercel-cache": "HIT",
+                "x-vercel-id": "fra1::iad1::7n2kq-1760090000000-5c8e1f0a3b7d"
+            },
+            "file": "index.html"
+        },
+        "http://acme-analytics.example/": { "status": 308, "redirect": "https://acme-analytics.example/" },
+        "https://www.acme-analytics.example/": { "status": 308, "redirect": "https://acme-analytics.example/" },
+        "https://acme-analytics.example/robots.txt": { "headers": { "server": "Vercel" }, "file": "robots.txt" },
+        "https://acme-analytics.example/sitemap.xml": { "headers": { "server": "Vercel" }, "file": "sitemap.xml" },
+        "https://acme-analytics.example/pricing": { "file": "index.html" },
+        "https://acme-analytics.example/blog": { "file": "index.html" },
+        "https://acme-analytics.example/sitehp-check-*": { "status": 404, "headers": { "server": "Vercel", "x-vercel-cache": "MISS" }, "file": "404.html" }
+    },
+    "expect": {
+        "http_redirect": "pass",
+        "hsts": "pass",
+        "csp": "fail",
+        "h1": "fail",
+        "canonical": "warn",
+        "meta_description": "warn",
+        "open_graph": "warn",
+        "json_ld": "warn",
+        "heading_order": "skipped:no_headings",
+        "viewport": "pass",
+        "robots_txt": "pass",
+        "sitemap_urls": "pass",
+        "soft_404": "pass",
+        "canonical_host": "pass"
+    }
+}

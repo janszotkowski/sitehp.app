@@ -1,0 +1,154 @@
+name: CI
+
+# Every push to main and every pull request runs the same checks as `pnpm verify` locally.
+# A red run must block the merge (branch protection: require the "Verify" check).
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+# Nothing here writes to the repository or needs a secret.
+permissions:
+    contents: read
+
+# A newer push to the same branch makes an older run pointless.
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    TURBO_TELEMETRY_DISABLED: '1'
+    DO_NOT_TRACK: '1'
+    # A frontend build needs the API address the browser will call; CI builds for the browser tests' backend
+    # (the smoke test reaches its backend from the server side only, so it does not mind).
+    VITE_API_URL: 'http://127.0.0.1:4160'
+    # Not the production origin: a build for https://sitehp.app without indexing fails on purpose.
+    VITE_SITE_URL: 'http://127.0.0.1:3160'
+
+jobs:
+    verify:
+        name: Verify
+        runs-on: ubuntu-24.04
+        timeout-minutes: 25
+        # The queue tests (BullMQ, the wake-up channel, a whole scan through API and worker) need a real Redis; the migration lock and
+        # the row lock under real concurrency need a real PostgreSQL (tests/postgres.test.ts). Everything else runs on PGlite.
+        # The images are the ones docker-compose.yml uses, pinned by the same digests.
+        services:
+            postgres:
+                image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+                env:
+                    POSTGRES_USER: sitehp
+                    POSTGRES_PASSWORD: sitehp
+                    POSTGRES_DB: sitehp
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U sitehp"
+                    --health-interval 5s
+                    --health-timeout 3s
+                    --health-retries 10
+            redis:
+                image: redis:7-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+                ports:
+                    - 6379:6379
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 5s
+                    --health-timeout 3s
+                    --health-retries 10
+        steps:
+            # Actions are pinned to a full commit SHA (the tag is in the comment): a moved tag cannot change what runs.
+            # The versions are the newest releases that are at least 7 days old, like the dependencies.
+            - name: Check out
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  persist-credentials: false
+
+            # pnpm's version comes from "packageManager" in package.json; the store is cached by the lockfile.
+            - name: Set up pnpm
+              uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+              with:
+                  cache: true
+
+            # Node's version comes from .node-version, the same file the project uses locally.
+            - name: Set up Node
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version-file: .node-version
+                  package-manager-cache: false
+
+            - name: Install
+              run: pnpm install --frozen-lockfile
+
+            # Turborepo's local cache (.turbo/cache): a task whose inputs did not change since an earlier run is replayed, not run.
+            # Each run saves its own entry (keyed by the commit) and starts from the newest one for the same lockfile, else any.
+            - name: Turborepo cache
+              uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              with:
+                  path: .turbo
+                  key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+                  restore-keys: |
+                      turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+                      turbo-${{ runner.os }}-
+
+            - name: Dependency and workflow policy
+              run: pnpm policy
+
+            - name: Lint (oxlint)
+              run: pnpm lint
+
+            - name: Formatting (oxfmt)
+              run: pnpm format:check
+
+            - name: Types
+              run: pnpm typecheck
+
+            - name: Tests
+              run: pnpm test
+              env:
+                  REDIS_URL: redis://127.0.0.1:6379
+                  DATABASE_URL: postgres://sitehp:sitehp@127.0.0.1:5432/sitehp
+
+            - name: Build
+              run: pnpm build
+
+            # Starts the built backend and frontend as production would run them and checks that they work together.
+            - name: Smoke test
+              run: pnpm smoke
+
+            # The browser tests: Chromium against the built apps, with every scan replayed from the demo sites in apps/backend/demo-sites.
+            - name: Install Chromium for the browser tests
+              run: pnpm --filter @sitehp.app/e2e exec playwright install --with-deps chromium
+
+            # The HTML report (with the trace of a retried test) is written in CI too, for the upload below.
+            - name: Browser tests (Playwright)
+              run: pnpm e2e --reporter=list,html
+
+            - name: Upload the Playwright report
+              if: failure()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: playwright-report
+                  path: |
+                      apps/e2e/playwright-report
+                      apps/e2e/test-results
+                  retention-days: 14
+                  if-no-files-found: ignore
+
+            # Generated files that are committed (the route tree) are regenerated by the build. If that
+            # changed anything, the commit is out of date, and nothing else may have been touched either.
+            - name: Generated files are up to date
+              run: |
+                  if [ -n "$(git status --porcelain)" ]; then
+                    echo "The working tree changed during the run. Commit the regenerated files:"
+                    git status --short
+                    git --no-pager diff --stat
+                    exit 1
+                  fi
+
+            # The production images build (only locally, nothing is pushed): a broken Dockerfile fails here, not on the next `pnpm stack`.
+            - name: Docker image (backend)
+              run: docker build --target backend .
+
+            - name: Docker image (frontend)
+              run: docker build --target frontend .

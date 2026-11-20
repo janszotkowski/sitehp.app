@@ -1,0 +1,276 @@
+{
+    "id": "043b651e-76a4-4bb8-b53a-7a07b20229fe",
+    "prevId": "04bb67ca-b513-44f7-9013-7b1408cde781",
+    "version": "7",
+    "dialect": "postgresql",
+    "tables": {
+        "public.scan_events": {
+            "name": "scan_events",
+            "schema": "",
+            "columns": {
+                "scan_id": {
+                    "name": "scan_id",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "id": {
+                    "name": "id",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "type": {
+                    "name": "type",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "ts": {
+                    "name": "ts",
+                    "type": "timestamp with time zone",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "event": {
+                    "name": "event",
+                    "type": "jsonb",
+                    "primaryKey": false,
+                    "notNull": true
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {
+                "scan_events_scan_id_scans_public_id_fk": {
+                    "name": "scan_events_scan_id_scans_public_id_fk",
+                    "tableFrom": "scan_events",
+                    "tableTo": "scans",
+                    "columnsFrom": ["scan_id"],
+                    "columnsTo": ["public_id"],
+                    "onDelete": "cascade",
+                    "onUpdate": "no action"
+                }
+            },
+            "compositePrimaryKeys": {
+                "scan_events_scan_id_id_pk": {
+                    "name": "scan_events_scan_id_id_pk",
+                    "columns": ["scan_id", "id"]
+                }
+            },
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
+        "public.scans": {
+            "name": "scans",
+            "schema": "",
+            "columns": {
+                "public_id": {
+                    "name": "public_id",
+                    "type": "text",
+                    "primaryKey": true,
+                    "notNull": true
+                },
+                "domain": {
+                    "name": "domain",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "url": {
+                    "name": "url",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "status": {
+                    "name": "status",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "score": {
+                    "name": "score",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "engine_version": {
+                    "name": "engine_version",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "timestamp with time zone",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "finished_at": {
+                    "name": "finished_at",
+                    "type": "timestamp with time zone",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "snapshot": {
+                    "name": "snapshot",
+                    "type": "jsonb",
+                    "primaryKey": false,
+                    "notNull": true
+                }
+            },
+            "indexes": {
+                "scans_created_at_idx": {
+                    "name": "scans_created_at_idx",
+                    "columns": [
+                        {
+                            "expression": "created_at",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                },
+                "scans_domain_idx": {
+                    "name": "scans_domain_idx",
+                    "columns": [
+                        {
+                            "expression": "domain",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                },
+                "scans_url_created_at_idx": {
+                    "name": "scans_url_created_at_idx",
+                    "columns": [
+                        {
+                            "expression": "url",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        },
+                        {
+                            "expression": "created_at",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                },
+                "scans_running_created_at_idx": {
+                    "name": "scans_running_created_at_idx",
+                    "columns": [
+                        {
+                            "expression": "created_at",
+                            "isExpression": false,
+                            "asc": true,
+                            "nulls": "last"
+                        }
+                    ],
+                    "isUnique": false,
+                    "where": "\"scans\".\"status\" = 'running'",
+                    "concurrently": false,
+                    "method": "btree",
+                    "with": {}
+                }
+            },
+            "foreignKeys": {},
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        },
+        "public.sites": {
+            "name": "sites",
+            "schema": "",
+            "columns": {
+                "domain": {
+                    "name": "domain",
+                    "type": "text",
+                    "primaryKey": true,
+                    "notNull": true
+                },
+                "first_seen_at": {
+                    "name": "first_seen_at",
+                    "type": "timestamp with time zone",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "last_seen_at": {
+                    "name": "last_seen_at",
+                    "type": "timestamp with time zone",
+                    "primaryKey": false,
+                    "notNull": true
+                },
+                "request_count": {
+                    "name": "request_count",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": 0
+                },
+                "scan_count": {
+                    "name": "scan_count",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": 0
+                },
+                "blocked_count": {
+                    "name": "blocked_count",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "default": 0
+                },
+                "last_score": {
+                    "name": "last_score",
+                    "type": "integer",
+                    "primaryKey": false,
+                    "notNull": false
+                },
+                "last_scan_at": {
+                    "name": "last_scan_at",
+                    "type": "timestamp with time zone",
+                    "primaryKey": false,
+                    "notNull": false
+                }
+            },
+            "indexes": {},
+            "foreignKeys": {},
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {},
+            "policies": {},
+            "checkConstraints": {},
+            "isRLSEnabled": false
+        }
+    },
+    "enums": {},
+    "schemas": {},
+    "sequences": {},
+    "roles": {},
+    "policies": {},
+    "views": {},
+    "_meta": {
+        "columns": {},
+        "schemas": {},
+        "tables": {}
+    }
+}

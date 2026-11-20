@@ -1,0 +1,20 @@
+# Nothing built or installed on the host goes into an image: the image builds from the sources.
+**/node_modules
+**/dist
+**/.output
+**/.turbo
+**/.tanstack
+**/.paraglide
+**/src/paraglide
+**/playwright-report
+**/test-results
+.git
+.github
+.idea
+.env
+**/.env
+**/.env.*
+!**/.env.example
+docs
+*.log
+.DS_Store

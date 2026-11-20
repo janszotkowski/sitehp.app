@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://acme-coffee.example/wp-sitemap.xsl" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://acme-coffee.example/2026/10/pour-over-ratios/</loc><lastmod>2026-10-04T08:12:40+00:00</lastmod></url>
+<url><loc>https://acme-coffee.example/2026/09/cold-brew-basics/</loc><lastmod>2026-09-21T07:03:11+00:00</lastmod></url>
+<url><loc>https://acme-coffee.example/2026/08/grinder-maintenance/</loc><lastmod>2026-08-30T15:44:02+00:00</lastmod></url>
+<url><loc>https://acme-coffee.example/2026/07/water-matters/</loc><lastmod>2026-07-12T10:20:55+00:00</lastmod></url>
+<url><loc>https://acme-coffee.example/2026/06/hello-world/</loc><lastmod>2026-06-01T09:00:00+00:00</lastmod></url>
+</urlset>

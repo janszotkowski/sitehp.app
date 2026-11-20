@@ -1,0 +1,46 @@
+name: Bug report
+description: Something in the app or the API does not work as it should.
+labels: [bug]
+body:
+    - type: markdown
+      attributes:
+          value: Thanks for taking the time to report this. For a security problem, use a private report instead (see SECURITY.md). If a check judged a site wrongly, use the "Wrong result" form.
+    - type: textarea
+      id: what
+      attributes:
+          label: What happened
+          description: What you saw, and what you expected instead.
+      validations:
+          required: true
+    - type: textarea
+      id: steps
+      attributes:
+          label: Steps to reproduce
+          description: Include the report link or the address you scanned when it helps.
+          placeholder: |
+              1. Scan https://example.com
+              2. Open the finding …
+      validations:
+          required: true
+    - type: dropdown
+      id: where
+      attributes:
+          label: Where
+          options:
+              - Web app
+              - API
+              - Self-hosted deployment (Docker, worker)
+              - Development setup
+      validations:
+          required: true
+    - type: input
+      id: environment
+      attributes:
+          label: Browser and OS, or Node version
+          placeholder: Firefox 131 on macOS 15 / Node 24.22.3
+    - type: textarea
+      id: logs
+      attributes:
+          label: Logs or screenshots
+          description: Console errors, backend log lines or a screenshot. Remove anything private.
+          render: text

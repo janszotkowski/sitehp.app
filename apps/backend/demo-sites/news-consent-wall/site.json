@@ -1,0 +1,74 @@
+{
+    "url": "https://www.zpravy-acme.example/domaci/zastupitele-schvalili-novy-park-41234",
+    "note": "A Czech news article behind a cookie-consent wall: every page (the article, the home page, the sitemap's articles) answers 302 to a login check, then 302 to /nastaveni-souhlasu?url=<the encoded article> on the consent host, whose page has no lang, no description and an h2 only. robots.txt and the news sitemap answer directly. Tests that the consent page is not judged as the article (HTML checks skipped as consent_wall) and that sitemap addresses redirecting to the wall do not count as redirected.",
+    "certificate": { "daysLeft": 140, "issuer": "Demo OV CA 2024" },
+    "responses": {
+        "https://www.zpravy-acme.example/llms.txt": { "status": 404 },
+        "https://www.zpravy-acme.example/domaci/zastupitele-schvalili-novy-park-41234": {
+            "status": 302,
+            "redirect": "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fzastupitele-schvalili-novy-park-41234"
+        },
+        "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fzastupitele-schvalili-novy-park-41234": {
+            "status": 302,
+            "redirect": "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fzastupitele-schvalili-novy-park-41234"
+        },
+        "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fzastupitele-schvalili-novy-park-41234": {
+            "headers": { "server": "nginx", "strict-transport-security": "max-age=31536000", "x-frame-options": "SAMEORIGIN", "x-content-type-options": "nosniff", "cache-control": "no-store" },
+            "file": "consent.html"
+        },
+
+        "http://www.zpravy-acme.example/": { "redirect": "https://www.zpravy-acme.example/" },
+        "https://zpravy-acme.example/": { "redirect": "https://www.zpravy-acme.example/" },
+        "https://www.zpravy-acme.example/": { "status": 302, "redirect": "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2F" },
+        "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2F": {
+            "status": 302,
+            "redirect": "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2F"
+        },
+        "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2F": { "file": "consent.html" },
+
+        "https://www.zpravy-acme.example/robots.txt": { "file": "robots.txt" },
+        "https://www.zpravy-acme.example/sitemap-news.xml": { "file": "sitemap-news.xml" },
+        "https://www.zpravy-acme.example/sitehp-check-*": { "status": 404, "headers": { "content-type": "text/html; charset=utf-8" } },
+
+        "https://www.zpravy-acme.example/domaci/obec-otevrela-knihovnu-41190": {
+            "status": 302,
+            "redirect": "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fobec-otevrela-knihovnu-41190"
+        },
+        "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fobec-otevrela-knihovnu-41190": {
+            "status": 302,
+            "redirect": "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fobec-otevrela-knihovnu-41190"
+        },
+        "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fdomaci%2Fobec-otevrela-knihovnu-41190": { "file": "consent.html" },
+        "https://www.zpravy-acme.example/sport/mistni-klub-postoupil-41101": {
+            "status": 302,
+            "redirect": "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fsport%2Fmistni-klub-postoupil-41101"
+        },
+        "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fsport%2Fmistni-klub-postoupil-41101": {
+            "status": 302,
+            "redirect": "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fsport%2Fmistni-klub-postoupil-41101"
+        },
+        "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fsport%2Fmistni-klub-postoupil-41101": { "file": "consent.html" },
+        "https://www.zpravy-acme.example/kultura/festival-svetla-41022": {
+            "status": 302,
+            "redirect": "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fkultura%2Ffestival-svetla-41022"
+        },
+        "https://login.zpravy-acme.example/kontrola?continue=https%3A%2F%2Fwww.zpravy-acme.example%2Fkultura%2Ffestival-svetla-41022": {
+            "status": 302,
+            "redirect": "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fkultura%2Ffestival-svetla-41022"
+        },
+        "https://cmp.zpravy-acme.example/nastaveni-souhlasu?url=https%3A%2F%2Fwww.zpravy-acme.example%2Fkultura%2Ffestival-svetla-41022": { "file": "consent.html" }
+    },
+    "expect": {
+        "http_redirect": "pass",
+        "http_status": "pass",
+        "seo_title": "skipped:consent_wall",
+        "meta_description": "skipped:consent_wall",
+        "h1": "skipped:consent_wall",
+        "html_lang": "skipped:consent_wall",
+        "canonical": "skipped:consent_wall",
+        "img_alt": "skipped:consent_wall",
+        "robots_txt": "pass",
+        "sitemap_xml": "pass",
+        "soft_404": "pass"
+    }
+}

@@ -1,0 +1,5 @@
+# Example Widgets
+
+> Reliable widgets for teams of every size.
+
+- [About](https://example.com/about): who builds them

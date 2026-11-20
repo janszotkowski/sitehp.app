@@ -1,0 +1,44 @@
+# Lorem ipsum: this wiki has many pages. Crawl slowly, one request at a time,
+# or your address may be rate limited.
+
+# advertising-related bots:
+User-agent: Mediapartners-Google*
+Disallow: /
+
+# Crawlers we do not need (they feed no search engine).
+User-agent: UbiCrawler
+Disallow: /
+
+User-agent: DOC
+Disallow: /
+
+User-agent: Zao
+Disallow: /
+
+# Site copiers: please do not.
+User-agent: sitecheck.internetseer.com
+Disallow: /
+
+User-agent: Zealbot
+Disallow: /
+
+User-agent: MSIECrawler
+Disallow: /
+
+User-agent: HTTrack
+Disallow: /
+
+User-agent: wget
+Disallow: /
+
+# Everyone else: articles yes, generated pages no.
+User-agent: *
+Allow: /w/api.php?action=mobileview&
+Allow: /w/load.php?
+Allow: /api/rest_v1/?doc
+Disallow: /w/
+Disallow: /api/
+Disallow: /trap/
+Disallow: /wiki/Speci%C3%A1ln%C3%AD:
+Disallow: /wiki/Special:
+Disallow: /wiki/Speci%C3%A1ln%C3%AD:Hledat

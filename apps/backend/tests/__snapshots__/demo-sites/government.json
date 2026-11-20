@@ -1,0 +1,473 @@
+{
+    "url": "https://www.mesto-acmeves.example/",
+    "finalUrl": "https://www.mesto-acmeves.example/",
+    "scanStatus": "completed",
+    "score": 76,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blockedRetrieval": "",
+                "refusedBySignal": "",
+                "blockedTraining": ""
+            }
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "warn",
+            "evidence": {
+                "present": true,
+                "absolute": true,
+                "matches": false,
+                "href": "http://www.mesto-acmeves.example/"
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "warn",
+            "evidence": {
+                "count": 2,
+                "addresses": "www.mesto-acmeves.example, portal.mesto-acmeves.example"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "pass",
+            "evidence": {
+                "daysLeft": 212,
+                "validTo": "2027-05-09T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo Qualified Server CA"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "pass",
+            "evidence": {
+                "htmlEncoding": "gzip",
+                "htmlBytes": 2223,
+                "htmlTransferredBytes": 1210,
+                "filesSampled": 0,
+                "filesUncompressed": 0
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "pass",
+            "evidence": {
+                "words": 63,
+                "scripts": 1
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "pass",
+            "evidence": {
+                "cookies": 1,
+                "missing": 0,
+                "names": ""
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "pass",
+            "evidence": {
+                "cookies": 1,
+                "missing": 0,
+                "names": ""
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "fail",
+            "evidence": {
+                "cookies": 1,
+                "missing": 1,
+                "names": "ASP.NET_SessionId",
+                "rejected": 0
+            }
+        },
+        {
+            "id": "coop",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "csp",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "pass",
+            "evidence": {
+                "present": true
+            }
+        },
+        {
+            "id": "h1",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "h1": "Město Acmeves"
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "pass",
+            "evidence": {
+                "count": 5,
+                "skips": 0
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "applicable": false
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "pass",
+            "evidence": {
+                "lang": "cs"
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "fail",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "http://www.mesto-acmeves.example/",
+                "status": 200
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "pass",
+            "evidence": {
+                "status": 200,
+                "redirects": 0
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "protocol_unknown",
+            "evidence": {
+                "protocol": "unknown",
+                "h3Advertised": false
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "pass",
+            "evidence": {
+                "images": 1,
+                "modern": 0,
+                "legacy": 1,
+                "modernPercent": 0
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "pass",
+            "evidence": {
+                "images": 1,
+                "missing": 0
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "pass",
+            "evidence": {
+                "images": 1,
+                "missing": 0
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "warn",
+            "evidence": {
+                "server": "Microsoft-IIS/10.0",
+                "poweredBy": "ASP.NET"
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "warn",
+            "evidence": {
+                "blocks": 0,
+                "invalid": 0,
+                "types": "",
+                "untyped": 0,
+                "retired": ""
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "few_images",
+            "evidence": {
+                "images": 1
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "not_offered",
+            "evidence": {}
+        },
+        {
+            "id": "llms_txt",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "warn",
+            "evidence": {
+                "served": false,
+                "status": 200,
+                "contentType": "text/html; charset=utf-8"
+            }
+        },
+        {
+            "id": "meta_description",
+            "status": "pass",
+            "evidence": {
+                "length": 129,
+                "description": "Oficiální stránky města Acmeves: úřední deska, odbory úřadu, formuláře ke stažení, aktuality z radnice a kontakty na zastupitele."
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "active": 0,
+                "passive": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "pass",
+            "evidence": {
+                "meta": false,
+                "header": false
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "fail",
+            "evidence": {
+                "present": 0,
+                "missing": "og:title, og:description, og:image, og:url"
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "present": 0
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "pass",
+            "evidence": {
+                "htmlBytes": 2223,
+                "htmlTransferredBytes": 1210,
+                "scripts": 1,
+                "styles": 1,
+                "images": 1,
+                "fonts": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 0,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "warn",
+            "evidence": {
+                "blockingScripts": 1,
+                "blockingStyles": 1
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "pass",
+            "evidence": {
+                "path": "/",
+                "allowed": true,
+                "rule": null
+            }
+        },
+        {
+            "id": "robots_txt",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blocksAll": false,
+                "sitemaps": 0
+            }
+        },
+        {
+            "id": "seo_title",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "length": 46,
+                "title": "Městský úřad Acmeves – oficiální stránky města"
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "warn",
+            "evidence": {
+                "listed": 0
+            }
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "soft_404",
+            "status": "pass",
+            "evidence": {
+                "status": 404,
+                "finalUrl": "https://www.mesto-acmeves.example/sitehp-check-11111111-1111-4111-8111-111111111111",
+                "redirected": false
+            }
+        },
+        {
+            "id": "ttfb",
+            "status": "pass",
+            "evidence": {
+                "ttfbMs": 0
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "content": "width=device-width, initial-scale=1.0",
+                "zoomBlocked": false
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        }
+    ]
+}

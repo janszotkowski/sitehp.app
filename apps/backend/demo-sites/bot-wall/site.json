@@ -1,0 +1,48 @@
+{
+    "url": "https://www.acme-tickets.example/",
+    "note": "A ticket shop behind a bot-protection edge: every address the scanner asks for (the page, robots.txt, the sitemap, the not-found probe) answers 403 with a JavaScript challenge page, served with a full set of security headers and a bot-management cookie with every flag. Tests that a firewall's block page is not judged as the site: page-reading checks are skipped as blocked and no score is given.",
+    "certificate": { "daysLeft": 83, "issuer": "Demo Edge ECC CA-3" },
+    "responses": {
+        "https://www.acme-tickets.example/": {
+            "status": 403,
+            "headers": {
+                "content-type": "text/html; charset=UTF-8",
+                "server": "edge",
+                "x-edge-mitigated": "challenge",
+                "x-edge-ray": "8c9f2e1a7b3d4c50-PRG",
+                "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+                "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "content-security-policy": "default-src 'none'; script-src 'nonce-q1W2e3R4t5Y6' 'unsafe-eval' https://challenges.acme-edge.example; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src https://challenges.acme-edge.example; frame-ancestors 'none'; base-uri 'none'",
+                "x-frame-options": "SAMEORIGIN",
+                "x-content-type-options": "nosniff",
+                "referrer-policy": "same-origin",
+                "permissions-policy": "accelerometer=(),autoplay=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),interest-cohort=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=()",
+                "cross-origin-opener-policy": "same-origin",
+                "cross-origin-embedder-policy": "require-corp",
+                "cross-origin-resource-policy": "same-origin"
+            },
+            "file": "challenge.html",
+            "cookies": [
+                "__edge_bm=Lorem1psumD0lorS1tAmet-1760090000-1.0.1.1-q1W2e3R4t5Y6u7I8o9P0; path=/; expires=Fri, 10-Oct-26 10:30:00 GMT; domain=.acme-tickets.example; HttpOnly; Secure; SameSite=None"
+            ]
+        },
+        "http://www.acme-tickets.example/": { "redirect": "https://www.acme-tickets.example/" },
+        "https://acme-tickets.example/": { "redirect": "https://www.acme-tickets.example/" },
+        "https://www.acme-tickets.example/robots.txt": { "status": 403, "headers": { "content-type": "text/html; charset=UTF-8", "x-edge-mitigated": "challenge" }, "file": "challenge.html" },
+        "https://www.acme-tickets.example/sitemap.xml": { "status": 403, "headers": { "content-type": "text/html; charset=UTF-8", "x-edge-mitigated": "challenge" }, "file": "challenge.html" },
+        "https://www.acme-tickets.example/sitehp-check-*": { "status": 403, "headers": { "content-type": "text/html; charset=UTF-8", "x-edge-mitigated": "challenge" }, "file": "challenge.html" }
+    },
+    "expect": {
+        "http_redirect": "pass",
+        "seo_title": "skipped:blocked",
+        "meta_description": "skipped:blocked",
+        "h1": "skipped:blocked",
+        "noindex": "skipped:blocked",
+        "img_alt": "skipped:blocked",
+        "robots_txt": "skipped:blocked",
+        "sitemap_xml": "skipped:blocked",
+        "soft_404": "skipped:blocked",
+        "score": null
+    }
+}

@@ -1,0 +1,1 @@
+CREATE INDEX "scans_running_created_at_idx" ON "scans" USING btree ("created_at") WHERE "scans"."status" = 'running';

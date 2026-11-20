@@ -1,0 +1,56 @@
+{
+    "url": "https://docs.acme-cloud.example/en/getting-started/",
+    "note": "A documentation site on a static host done right: a strict CSP (default-src 'none', frame-ancestors, upgrade-insecure-requests), HSTS with preload, every isolation header, no Server header, an llms.txt and the page served as Markdown to an agent that asks for it (with Vary: Accept), a complete head (title, description, canonical, Open Graph, Twitter card, TechArticle JSON-LD), hreflang for four languages plus x-default, a clean outline, robots.txt naming a sitemap whose addresses all answer, and a real 404. The reference for a perfect score.",
+    "certificate": { "daysLeft": 70, "issuer": "Demo Free CA E5" },
+    "responses": {
+        "https://docs.acme-cloud.example/en/getting-started/": {
+            "headers": {
+                "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+                "content-security-policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+                "x-frame-options": "DENY",
+                "x-content-type-options": "nosniff",
+                "referrer-policy": "strict-origin-when-cross-origin",
+                "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+                "cross-origin-opener-policy": "same-origin",
+                "cross-origin-embedder-policy": "require-corp",
+                "cross-origin-resource-policy": "same-origin",
+                "cache-control": "public, max-age=300, stale-while-revalidate=86400",
+                "etag": "\"6f1e2d3c\""
+            },
+            "file": "page.html"
+        },
+        "http://docs.acme-cloud.example/": { "redirect": "https://docs.acme-cloud.example/" },
+        "https://docs.acme-cloud.example/": { "status": 302, "redirect": "https://docs.acme-cloud.example/en/" },
+        "https://docs.acme-cloud.example/en/": { "file": "listed-page.html" },
+        "https://docs.acme-cloud.example/llms.txt": { "file": "llms.txt" },
+        "https://docs.acme-cloud.example/en/getting-started/#accept=markdown": { "file": "page.md", "headers": { "vary": "Accept" } },
+        "https://docs.acme-cloud.example/robots.txt": { "file": "robots.txt" },
+        "https://docs.acme-cloud.example/sitemap.xml": { "file": "sitemap.xml" },
+        "https://docs.acme-cloud.example/en/services/": { "file": "listed-page.html" },
+        "https://docs.acme-cloud.example/cs/getting-started/": { "file": "listed-page.html" },
+        "https://docs.acme-cloud.example/sitehp-check-*": { "status": 404, "file": "404.html" }
+    },
+    "expect": {
+        "https_scheme": "pass",
+        "http_redirect": "pass",
+        "hsts": "pass",
+        "csp": "pass",
+        "x_frame_options": "pass",
+        "info_leak": "pass",
+        "mixed_content": "pass",
+        "seo_title": "pass",
+        "meta_description": "pass",
+        "h1": "pass",
+        "canonical": "pass",
+        "open_graph": "pass",
+        "heading_order": "pass",
+        "img_alt": "pass",
+        "json_ld": "pass",
+        "hreflang": "pass",
+        "robots_txt": "pass",
+        "sitemap_urls": "pass",
+        "soft_404": "pass",
+        "canonical_host": "pass",
+        "score": 100
+    }
+}

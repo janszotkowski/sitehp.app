@@ -1,0 +1,23 @@
+{
+    "name": "@sitehp.app/core",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Sdílené typy, schémata a logika (skóre, kontroly) pro api, web a CLI",
+    "type": "module",
+    "sideEffects": false,
+    "exports": {
+        ".": "./src/index.ts",
+        "./browser": "./src/browser.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc -p tsconfig.json",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "parse5": "8.0.1",
+        "zod": "4.6.5"
+    },
+    "devDependencies": {
+        "vitest": "5.0.3"
+    }
+}

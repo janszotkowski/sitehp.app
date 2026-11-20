@@ -1,0 +1,43 @@
+name: Wrong result
+description: A check passed or failed a site it should not have, or its explanation is wrong.
+labels: [check]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              sitehp.app judges what a site answers from the outside, at the moment of the scan. This form is for a check that got it wrong. Please scan again first: the site may have changed since.
+    - type: input
+      id: report
+      attributes:
+          label: Report link or scanned address
+          placeholder: https://sitehp.app/en/r/… or https://example.com
+      validations:
+          required: true
+    - type: input
+      id: check
+      attributes:
+          label: Which check
+          description: Its name in the report, or its id from the technical table.
+          placeholder: Content Security Policy (csp)
+      validations:
+          required: true
+    - type: dropdown
+      id: kind
+      attributes:
+          label: What is wrong
+          options:
+              - It fails or warns, but the site is fine
+              - It passes, but the site has the problem
+              - It was skipped, but it could have run
+              - The explanation or the fix guide is wrong
+              - The score looks wrong
+              - Something else
+      validations:
+          required: true
+    - type: textarea
+      id: difference
+      attributes:
+          label: What the report says, and what the site really does
+          description: The header, file or HTML that shows it helps most, for example the output of `curl -sI https://example.com`.
+      validations:
+          required: true

@@ -1,0 +1,493 @@
+{
+    "url": "https://acme-group.example/",
+    "finalUrl": "https://www.acme-group.example/",
+    "scanStatus": "completed",
+    "score": 96,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blockedRetrieval": "",
+                "refusedBySignal": "",
+                "blockedTraining": ""
+            }
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "absolute": true,
+                "matches": true,
+                "href": "https://www.acme-group.example/"
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "addresses": "www.acme-group.example"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "pass",
+            "evidence": {
+                "daysLeft": 301,
+                "validTo": "2027-08-06T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo OV CA 2025"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "pass",
+            "evidence": {
+                "htmlEncoding": "gzip",
+                "htmlBytes": 3123,
+                "htmlTransferredBytes": 1424,
+                "filesSampled": 0,
+                "filesUncompressed": 0
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "pass",
+            "evidence": {
+                "words": 70,
+                "scripts": 0
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "coop",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "csp",
+            "status": "warn",
+            "evidence": {
+                "present": true,
+                "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://tags.acme-group.example; img-src 'self' data:; style-src 'self' 'unsafe-inline'",
+                "issues": "unsafe-inline, no-base-uri"
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "pass",
+            "evidence": {
+                "present": true
+            }
+        },
+        {
+            "id": "h1",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "h1": "Čerpadla, která vydrží"
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "pass",
+            "evidence": {
+                "count": 6,
+                "skips": 0
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "applicable": false
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "max-age=31536000; includeSubDomains",
+                "includeSubDomains": true,
+                "preload": false
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "pass",
+            "evidence": {
+                "lang": "cs"
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "pass",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "https://www.acme-group.example/",
+                "status": 200
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "pass",
+            "evidence": {
+                "status": 200,
+                "redirects": 1
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "protocol_unknown",
+            "evidence": {
+                "protocol": "unknown",
+                "h3Advertised": false
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "pass",
+            "evidence": {
+                "images": 3,
+                "modern": 3,
+                "legacy": 0,
+                "modernPercent": 100
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "pass",
+            "evidence": {
+                "images": 4,
+                "missing": 0
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "pass",
+            "evidence": {
+                "images": 4,
+                "missing": 0
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "pass",
+            "evidence": {
+                "server": "Apache",
+                "poweredBy": null
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "pass",
+            "evidence": {
+                "blocks": 1,
+                "invalid": 0,
+                "types": "Organization",
+                "untyped": 0,
+                "retired": ""
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "few_images",
+            "evidence": {
+                "images": 4
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "not_offered",
+            "evidence": {}
+        },
+        {
+            "id": "llms_txt",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "warn",
+            "evidence": {
+                "served": false,
+                "status": 200,
+                "contentType": "text/html; charset=utf-8"
+            }
+        },
+        {
+            "id": "meta_description",
+            "status": "pass",
+            "evidence": {
+                "length": 134,
+                "description": "Acme Group a.s. vyvíjí a vyrábí průmyslová čerpadla pro vodárny, chemii a energetiku. Servis po celé republice, náhradní díly skladem."
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "active": 0,
+                "passive": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "pass",
+            "evidence": {
+                "meta": false,
+                "header": false
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "pass",
+            "evidence": {
+                "present": 4,
+                "missing": ""
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "warn",
+            "evidence": {
+                "missing": "og:site_name, og:locale, og:image:alt",
+                "imageAbsolute": true
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "pass",
+            "evidence": {
+                "htmlBytes": 3123,
+                "htmlTransferredBytes": 1424,
+                "scripts": 0,
+                "styles": 1,
+                "images": 4,
+                "fonts": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "geolocation=(), camera=(), microphone=()"
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 1,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "strict-origin-when-cross-origin",
+                "policy": "strict-origin-when-cross-origin"
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "pass",
+            "evidence": {
+                "blockingScripts": 0,
+                "blockingStyles": 1
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "pass",
+            "evidence": {
+                "path": "/",
+                "allowed": true,
+                "rule": null
+            }
+        },
+        {
+            "id": "robots_txt",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blocksAll": false,
+                "sitemaps": 1
+            }
+        },
+        {
+            "id": "seo_title",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "length": 59,
+                "title": "Acme Group – průmyslová čerpadla a servis | Acme Group a.s."
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "pass",
+            "evidence": {
+                "listed": 1
+            }
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "pass",
+            "evidence": {
+                "sampled": 3,
+                "failing": 0,
+                "redirected": 0,
+                "unindexable": 0,
+                "blocked": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "valid": true,
+                "kind": "urlset",
+                "addresses": 202,
+                "foreign": 0,
+                "insecure": 0,
+                "lastmod": 202,
+                "truncated": false
+            }
+        },
+        {
+            "id": "soft_404",
+            "status": "fail",
+            "evidence": {
+                "status": 200,
+                "finalUrl": "https://www.acme-group.example/",
+                "redirected": true
+            }
+        },
+        {
+            "id": "ttfb",
+            "status": "pass",
+            "evidence": {
+                "ttfbMs": 0
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "card": "summary_large_image"
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "content": "width=device-width, initial-scale=1",
+                "zoomBlocked": false
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "nosniff"
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "source": "header",
+                "value": "SAMEORIGIN"
+            }
+        }
+    ]
+}

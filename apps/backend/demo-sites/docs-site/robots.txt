@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /en/search/
+Disallow: /cs/search/
+
+Sitemap: https://docs.acme-cloud.example/sitemap.xml

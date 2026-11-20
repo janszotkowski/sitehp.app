@@ -1,0 +1,45 @@
+{
+    "url": "https://acme-coffee.example/",
+    "note": "A WordPress blog on shared PHP hosting: generator meta, the wp-json API link, a Yoast-style JSON-LD @graph, the core wp-sitemap.xml index, the default robots.txt (Disallow /wp-admin/, Allow admin-ajax.php) and X-Powered-By with the PHP version. Tests that a sitemap index is followed to its first child and sampled, and that a version in X-Powered-By is reported while everything SEO is fine.",
+    "certificate": { "daysLeft": 62, "issuer": "Demo Free CA R11" },
+    "responses": {
+        "https://acme-coffee.example/llms.txt": { "status": 404 },
+        "https://acme-coffee.example/": {
+            "headers": {
+                "server": "nginx",
+                "x-powered-by": "PHP/8.1.27",
+                "link": "<https://acme-coffee.example/wp-json/>; rel=\"https://api.w.org/\"",
+                "cache-control": "max-age=0, no-cache",
+                "vary": "Accept-Encoding"
+            },
+            "file": "index.html"
+        },
+        "http://acme-coffee.example/": { "redirect": "https://acme-coffee.example/" },
+        "https://www.acme-coffee.example/": { "redirect": "https://acme-coffee.example/" },
+        "https://acme-coffee.example/robots.txt": { "headers": { "server": "nginx", "x-powered-by": "PHP/8.1.27" }, "file": "robots.txt" },
+        "https://acme-coffee.example/wp-sitemap.xml": { "file": "wp-sitemap.xml" },
+        "https://acme-coffee.example/wp-sitemap-posts-post-1.xml": { "file": "wp-sitemap-posts-post-1.xml" },
+        "https://acme-coffee.example/2026/10/pour-over-ratios/": { "file": "post.html" },
+        "https://acme-coffee.example/2026/08/grinder-maintenance/": { "file": "post.html" },
+        "https://acme-coffee.example/2026/06/hello-world/": { "file": "post.html" },
+        "https://acme-coffee.example/sitehp-check-*": { "status": 404, "headers": { "x-powered-by": "PHP/8.1.27" }, "file": "404.html" }
+    },
+    "expect": {
+        "http_redirect": "pass",
+        "hsts": "fail",
+        "csp": "fail",
+        "info_leak": "warn",
+        "seo_title": "pass",
+        "meta_description": "pass",
+        "h1": "pass",
+        "noindex": "pass",
+        "json_ld": "pass",
+        "img_alt": "pass",
+        "robots_txt": "pass",
+        "sitemap_xml": "pass",
+        "sitemap_in_robots": "pass",
+        "sitemap_urls": "pass",
+        "soft_404": "pass",
+        "canonical_host": "pass"
+    }
+}

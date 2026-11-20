@@ -1,0 +1,893 @@
+@import 'tailwindcss' source('../');
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/inter/index.css';
+
+/*
+ * Design language: docs/DESIGN.md. Dark is the identity and is what the
+ * server renders (`<html class="dark">`); light is a full peer built from the
+ * same tokens. The boot script in src/lib/theme.ts follows the system setting
+ * before first paint.
+ */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    /* Typeface: Inter variable (weight axis only: the optical-size files are half as big again); system monospace for code. */
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: var(--font-sans);
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
+    /* Colors (mapped to the CSS variables below). */
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-subtle-foreground: var(--subtle-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-link: var(--link);
+    /* Not `--color-score`: `text-score` is already the type role, and the two would collide. */
+    --color-hp: var(--score-color);
+    --color-score-critical: var(--score-critical);
+    --color-score-poor: var(--score-poor);
+    --color-score-fair: var(--score-fair);
+    --color-score-good: var(--score-good);
+    --color-score-excellent: var(--score-excellent);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    /* Shape: generously rounded. xs chips · sm inputs · md buttons/rows · lg cards · xl sheets · 4xl pills. */
+    --radius-xs: 8px;
+    --radius-sm: 12px;
+    --radius-md: 18px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --radius-2xl: 40px;
+    --radius-3xl: 56px;
+    --radius-4xl: 999px;
+
+    /* Type scale: size, leading and tracking move together (tracking tightens as size grows). */
+    --text-score: clamp(5rem, 22vw, 9rem);
+    --text-score--line-height: 0.95;
+    --text-score--letter-spacing: -0.04em;
+    --text-score--font-weight: 600;
+    --text-display: clamp(2.25rem, 7vw, 4rem);
+    --text-display--line-height: 1.05;
+    --text-display--letter-spacing: -0.03em;
+    --text-display--font-weight: 600;
+    --text-title-1: 2rem;
+    --text-title-1--line-height: 1.15;
+    --text-title-1--letter-spacing: -0.02em;
+    --text-title-1--font-weight: 600;
+    --text-title-2: 1.5rem;
+    --text-title-2--line-height: 1.2;
+    --text-title-2--letter-spacing: -0.015em;
+    --text-title-2--font-weight: 600;
+    --text-headline: 1.0625rem;
+    --text-headline--line-height: 1.35;
+    --text-headline--letter-spacing: -0.005em;
+    --text-headline--font-weight: 600;
+    --text-callout: 0.9375rem;
+    --text-callout--line-height: 1.45;
+    --text-callout--font-weight: 400;
+    --text-code: 0.8125rem;
+    --text-code--line-height: 1.5;
+    --text-code--font-weight: 400;
+    --text-caption: 0.8125rem;
+    --text-caption--line-height: 1.35;
+    --text-caption--letter-spacing: 0.01em;
+    --text-caption--font-weight: 500;
+    --text-overline: 0.75rem;
+    --text-overline--line-height: 1.2;
+    --text-overline--letter-spacing: 0.06em;
+    --text-overline--font-weight: 600;
+
+    /* Easing for non-interactive color and opacity changes. Anything a user can touch uses springs (src/lib/motion.ts). */
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Light: a full peer of dark, from the same tokens. */
+:root {
+    color-scheme: light;
+    --background: #fbfbfd;
+    --foreground: #17171a;
+    --card: #ffffff;
+    --card-foreground: #17171a;
+    --popover: #ffffff;
+    --popover-foreground: #17171a;
+    /* The primary action is inverted (ink on paper, paper on ink): the UI stays monochrome so score color keeps its meaning. */
+    --primary: #17171a;
+    --primary-foreground: #fbfbfd;
+    --secondary: #f2f2f6;
+    --secondary-foreground: #17171a;
+    --muted: #f2f2f6;
+    --muted-foreground: #4e4e57;
+    --subtle-foreground: #5f5f69;
+    --accent: #f2f2f6;
+    --accent-foreground: #17171a;
+    --destructive: #b3281f;
+    --border: rgb(0 0 0 / 8%);
+    /* The edge of a form control must reach 3:1 against the page (WCAG 1.4.11), so it is an opaque gray, not a faint hairline. */
+    --input: #8a8a94;
+    --ring: #0c6e42;
+    --link: #0c6e42;
+
+    /* Score states (checked for AA on every surface). The same anchors feed scoreColor() in @sitehp.app/core. */
+    --score-critical: #bf2f27;
+    --score-poor: #a65200;
+    --score-fair: #7f6200;
+    --score-good: #0f7a4b;
+    --score-excellent: #087572;
+    --score-color: var(--score-good);
+
+    --sidebar: #ffffff;
+    --sidebar-foreground: #17171a;
+    --sidebar-primary: #17171a;
+    --sidebar-primary-foreground: #fbfbfd;
+    --sidebar-accent: #f2f2f6;
+    --sidebar-accent-foreground: #17171a;
+    --sidebar-border: rgb(0 0 0 / 8%);
+    --sidebar-ring: #0c6e42;
+
+    /* Glass: structure floating above content. */
+    --glass-bg: rgb(255 255 255 / 60%);
+    --glass-border: rgb(255 255 255 / 70%);
+    /* Bright top edge: light catching the material. */
+    --glass-edge: rgb(255 255 255 / 95%);
+    --glass-shadow: 0 8px 32px rgb(0 0 0 / 10%);
+    --glass-blur: 24px;
+
+    /* Dims the page behind a modal task (dialogs, sheets). */
+    --scrim: rgb(0 0 0 / 35%);
+
+    /* Peak strength of the score glow at the top of the page; tests/design/contrast.test.ts keeps every text readable on it. */
+    --glow-strength: 15%;
+    /* The page glow's color: the vivid green the score graphics use (`scoreColor`), not the darker text-safe token. */
+    --glow-color: #1f9d55;
+
+    /* The sticky header's height (a 2.75rem row, 0.5rem above and below, a hairline), so what hangs under it lines up. */
+    --site-header-height: calc(3.75rem + 1px);
+    /* The desktop detail drawer. */
+}
+
+.dark {
+    color-scheme: dark;
+    --background: #000;
+    --foreground: #f5f5f7;
+    --card: #141418;
+    --card-foreground: #f5f5f7;
+    --popover: #1c1c22;
+    --popover-foreground: #f5f5f7;
+    --primary: #f5f5f7;
+    --primary-foreground: #0b0b0e;
+    --secondary: #1c1c22;
+    --secondary-foreground: #f5f5f7;
+    --muted: #1c1c22;
+    --muted-foreground: #a6a6ae;
+    --subtle-foreground: #8b8b95;
+    --accent: #1c1c22;
+    --accent-foreground: #f5f5f7;
+    --destructive: #ff6b63;
+    --border: rgb(255 255 255 / 8%);
+    --input: #6b6b75;
+    --ring: #3dd68c;
+    --link: #3dd68c;
+
+    --score-critical: #ff6b63;
+    --score-poor: #ff9f43;
+    --score-fair: #f2d14b;
+    --score-good: #3dd68c;
+    --score-excellent: #2dd4cf;
+
+    --sidebar: #141418;
+    --sidebar-foreground: #f5f5f7;
+    --sidebar-primary: #f5f5f7;
+    --sidebar-primary-foreground: #0b0b0e;
+    --sidebar-accent: #1c1c22;
+    --sidebar-accent-foreground: #f5f5f7;
+    --sidebar-border: rgb(255 255 255 / 8%);
+    --sidebar-ring: #3dd68c;
+
+    --glass-bg: rgb(20 20 24 / 60%);
+    --glass-border: rgb(255 255 255 / 14%);
+    --glass-edge: rgb(255 255 255 / 24%);
+    --glass-shadow: 0 8px 32px rgb(0 0 0 / 45%);
+    --scrim: rgb(0 0 0 / 55%);
+    --glow-strength: 16%;
+    --glow-color: var(--score-good);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    html {
+        @apply font-sans;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        text-size-adjust: 100%;
+        /* The sticky header covers the top of the page: a focused or linked element scrolls clear of it. */
+        scroll-padding-top: 5rem;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-size: 1rem;
+        line-height: 1.5;
+        /* A green glow from the top edge, pinned to the viewport, in both themes. */
+        background-image: radial-gradient(ellipse 80% 60vh at 50% 0%, color-mix(in oklch, var(--glow-color) var(--glow-strength), transparent), transparent 70%);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        /* A manual theme change eases instead of flashing; first paint is set before render. */
+        transition:
+            background-color 200ms var(--ease-standard),
+            color 200ms var(--ease-standard);
+    }
+    /* The target of the focus after a navigation (`RouteAnnouncer`) is not a control: no ring on it. Other programmatic focus keeps its ring. */
+    #main[tabindex='-1']:focus {
+        outline: none;
+    }
+    :where(:focus-visible) {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
+    }
+}
+
+/* Glass: translucent layer for what floats above content (tab bar, rail, sheets, dialogs, popovers). Never stack glass on glass. */
+@utility glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-top-color: var(--glass-edge);
+    box-shadow: var(--glass-shadow);
+}
+
+/* Heavier glass for structural regions such as the desktop rail. */
+@utility glass-heavy {
+    background: color-mix(in oklch, var(--background) 78%, transparent);
+    backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(160%);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(160%);
+    border: 1px solid var(--glass-border);
+    border-top-color: var(--glass-edge);
+    box-shadow: var(--glass-shadow);
+}
+
+/* Text on glass: higher contrast, one step heavier, a small tracking bump (vibrancy). Color belongs on a solid layer, not on the translucent foreground. */
+@utility vibrancy {
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    color: var(--foreground);
+}
+
+/* Scroll edge effect instead of a hard divider where content slides under floating chrome. */
+@utility scroll-edge-top {
+    mask-image: linear-gradient(to bottom, transparent, #000 1.5rem);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 1.5rem);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    :root,
+    .dark {
+        --glass-blur: 0px;
+        --glass-bg: var(--card);
+    }
+}
+
+@media (prefers-contrast: more) {
+    :root {
+        --border: rgb(0 0 0 / 40%);
+        --glass-bg: var(--card);
+        --glass-border: rgb(0 0 0 / 45%);
+    }
+    .dark {
+        --border: rgb(255 255 255 / 45%);
+        --glass-border: rgb(255 255 255 / 55%);
+    }
+}
+
+/* Reduced motion keeps comprehension (color and opacity) and drops slides, springs and sweeps. The delayed hint is only an opacity change, and dropping it would show it at once. */
+@media (prefers-reduced-motion: reduce) {
+    *:not(.delayed-hint),
+    ::before,
+    ::after {
+        animation: none !important;
+        scroll-behavior: auto !important;
+        transition-property: opacity, color, background-color, border-color, fill, stroke !important;
+        transition-duration: 150ms !important;
+    }
+}
+
+/* Report page: the viewport glow takes the score color instead of the default green. */
+body:has(.score-glow) {
+    background-image: none;
+}
+
+@utility score-glow {
+    &::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: radial-gradient(ellipse 80% 60vh at 50% 0%, color-mix(in oklch, var(--score-color) var(--glow-strength), transparent), transparent 70%) no-repeat;
+    }
+}
+
+/* Score color per theme: set --sc-dark and --sc-light inline (from scoreColor) and the right one becomes --score-color. */
+@utility score-themed {
+    --score-color: var(--sc-light);
+}
+
+.dark .score-themed {
+    --score-color: var(--sc-dark);
+}
+
+/* The score ring morphs between the landing page and the report instead of the page being replaced. */
+::view-transition-group(score-ring) {
+    animation-duration: 500ms;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 1ms !important;
+    }
+}
+
+/* A scan in progress: a soft halo in the score color breathes behind the ring, so the page reads as working before the first result lands. */
+.scan-halo {
+    position: absolute;
+    inset: -12%;
+    z-index: -1;
+    border-radius: 9999px;
+    pointer-events: none;
+    /* Before the first score the ring has no color of its own (`--score-color` unset): the glow is the text color, softer. */
+    background: radial-gradient(circle, color-mix(in oklch, var(--score-color, var(--foreground)) 30%, transparent) 0%, transparent 65%);
+    animation: scan-breathe 2.4s var(--ease-standard) infinite alternate;
+}
+
+@keyframes scan-breathe {
+    from {
+        opacity: 0.35;
+        transform: scale(0.92);
+    }
+    to {
+        opacity: 0.9;
+        transform: scale(1.04);
+    }
+}
+
+/* Before any score: a short arc runs round the empty track. */
+.scan-orbit {
+    transform-origin: 100px 100px;
+    animation: scan-orbit 1.4s linear infinite;
+}
+
+@keyframes scan-orbit {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* The playful status line: a light sweeps across the words, and each new phrase rises into place. */
+.scan-banter {
+    background-image: linear-gradient(90deg, var(--muted-foreground) 0%, var(--foreground) 50%, var(--muted-foreground) 100%);
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation:
+        scan-sweep 2.2s linear infinite,
+        scan-phrase-in 300ms var(--ease-standard) both;
+}
+
+@keyframes scan-sweep {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: -100% 0;
+    }
+}
+
+@keyframes scan-phrase-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.25em);
+    }
+}
+
+/* Without motion the words stay plain text in the muted color. */
+@media (prefers-reduced-motion: reduce) {
+    .scan-banter {
+        background-image: none;
+        color: var(--muted-foreground);
+    }
+}
+
+/* A hint for a slow load only: hidden for its first second, so a page that is ready at once never shows it. Never without scripts, where it would wait for ever. */
+.delayed-hint {
+    animation: delayed-hint 200ms var(--ease-standard) 1s both;
+}
+
+@keyframes delayed-hint {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (scripting: none) {
+    .delayed-hint {
+        display: none;
+    }
+}
+
+/* Landing polish (Vite / Void / Cloudflare feel): static, decorative, nothing loops. */
+
+/*
+ * Page backdrop on every page: a faint grid that fades toward the edges, and two hairlines at the edges of the
+ * 64rem content column (the framed look of Vite and Cloudflare). Fixed and static; below the column width the
+ * lines fall off-screen.
+ */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+body::before {
+    background-image:
+        linear-gradient(to right, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px),
+        linear-gradient(to bottom, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+    mask-image: radial-gradient(ellipse 75% 60% at 50% 20%, #000 15%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 20%, #000 15%, transparent 75%);
+}
+
+body::after {
+    background:
+        linear-gradient(var(--border), var(--border)) calc(50% - 32rem) 0 / 1px 100% no-repeat,
+        linear-gradient(var(--border), var(--border)) calc(50% + 32rem) 0 / 1px 100% no-repeat;
+    mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+}
+
+/* On paper: no grid lines or glow behind the page, and white all the way to the margins (a PDF is read on white). */
+@media print {
+    /* No page margin of the browser's: the report pads itself on every page (print-page), so a dialog set to no margins prints the same. */
+    @page {
+        margin: 0;
+    }
+
+    html,
+    body {
+        background: #fff !important;
+    }
+
+    body::before,
+    body::after {
+        display: none;
+    }
+}
+
+/* The paper margin, repeated on every page the element runs onto. */
+@utility print-page {
+    padding: 16mm 18mm;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/* Headline: ink fading to the muted tone, like the Vite and Void heroes. */
+@utility text-fade {
+    background-image: linear-gradient(180deg, var(--foreground) 35%, color-mix(in oklch, var(--foreground) 55%, transparent));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    /* The fill only paints the box, and a tight line height leaves descenders and diacritics outside it: pad the box, keep the layout. */
+    padding-block: 0.2em;
+    margin-block: -0.2em;
+}
+
+/* A row or card that lifts its hairline and wakes a soft glow on hover. */
+@utility glow-hover {
+    position: relative;
+    isolation: isolate;
+    transition:
+        border-color 200ms var(--ease-standard),
+        background-color 200ms var(--ease-standard);
+    &::after {
+        content: '';
+        position: absolute;
+        /* The glow may run past the element: a row of bare text, with no padding of its own, sets --glow-bleed-x and --glow-bleed-bottom so the highlight is not flush with the letters. */
+        inset: 0 calc(var(--glow-bleed-x, 0px) * -1) calc(var(--glow-bleed-bottom, 0px) * -1);
+        z-index: -1;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0;
+        background: radial-gradient(22rem circle at var(--mx, 50%) var(--my, 0%), color-mix(in oklch, var(--glow-color) 14%, transparent), transparent 70%);
+        transition: opacity 300ms var(--ease-standard);
+    }
+    &:hover {
+        border-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+    }
+    &:hover::after {
+        opacity: 1;
+    }
+}
+
+/* Scroll reveal, CSS only: content is fully visible without support, without scripts and with reduced motion. */
+@utility reveal {
+    @supports (animation-timeline: view()) {
+        animation: reveal-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 35%;
+    }
+}
+
+@keyframes reveal-in {
+    from {
+        opacity: 0;
+        transform: translateY(1.5rem);
+    }
+}
+
+/* The primary call to action gets a lit edge on hover, like the Vite "Get Started" button. */
+@utility cta-glow {
+    transition: box-shadow 250ms var(--ease-standard);
+    &:hover {
+        box-shadow:
+            0 0 0 1px color-mix(in oklch, var(--glow-color) 60%, transparent),
+            0 0 24px -4px color-mix(in oklch, var(--glow-color) 55%, transparent);
+    }
+}
+
+/* Entrance on first paint, once: each element rises in after the one before it (set --i). */
+@utility rise {
+    animation: rise-in 700ms var(--ease-standard) both;
+    animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@keyframes rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
+    }
+}
+
+/* Cards in one row reveal one after another, not all at once. */
+@utility reveal-stagger {
+    @supports (animation-timeline: view()) {
+        animation-range: entry calc(var(--i, 0) * 6%) entry calc(35% + var(--i, 0) * 6%);
+    }
+}
+
+/*
+ * The big call-to-action panel (Vite and Cloudflare closing banners): a deep green field with a dot pattern and a light
+ * rising from the bottom edge. Fixed colors in both themes (white text on it is checked for contrast), so it is the one
+ * place the page is loud.
+ */
+@utility banner {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: #fff;
+    background:
+        radial-gradient(ellipse 60% 45% at 50% 108%, rgb(190 255 215 / 75%), rgb(31 157 85 / 35%) 45%, transparent 75%),
+        radial-gradient(rgb(255 255 255 / 14%) 1px, transparent 1px) 0 0 / 10px 10px,
+        linear-gradient(180deg, #06281a 0%, #0c5a35 100%);
+    border: 1px solid rgb(255 255 255 / 14%);
+}
+
+/* A floating tile in the banner: tilted glass with an icon, purely decorative. */
+@utility banner-tile {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 1.1rem;
+    color: rgb(255 255 255 / 75%);
+    background: rgb(255 255 255 / 10%);
+    border: 1px solid rgb(255 255 255 / 18%);
+    backdrop-filter: blur(4px);
+    z-index: -1;
+}
+
+/* A hairline that draws itself in as it scrolls into view. */
+@utility draw {
+    transform-origin: left center;
+    @supports (animation-timeline: view()) {
+        animation: draw-in linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 30%;
+    }
+}
+
+@keyframes draw-in {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/* The hub of the flow diagram: a tilted rounded square with a lit edge, like the Vite logo block. Two rings ripple out from it. */
+@utility flow-hub {
+    position: relative;
+    background:
+        linear-gradient(var(--card), var(--card)) padding-box,
+        linear-gradient(135deg, color-mix(in oklch, var(--glow-color) 90%, transparent), transparent 60%, color-mix(in oklch, var(--glow-color) 50%, transparent)) border-box;
+    border: 1px solid transparent;
+    box-shadow:
+        0 0 48px -8px color-mix(in oklch, var(--glow-color) 55%, transparent),
+        inset 0 1px 0 var(--glass-edge);
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: inherit;
+        border: 1px solid color-mix(in oklch, var(--glow-color) 60%, transparent);
+        pointer-events: none;
+        animation: flow-ripple 3.2s var(--ease-standard) infinite;
+    }
+    &::after {
+        animation-delay: 1.6s;
+    }
+}
+
+@keyframes flow-ripple {
+    from {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(1.9);
+    }
+}
+
+/* The pulse line inside the hub: one bright segment keeps travelling along the trace (pathLength is 1). */
+@utility flow-trace {
+    stroke-dasharray: 0.4 1;
+    animation: flow-trace 2.4s linear infinite;
+}
+
+@keyframes flow-trace {
+    from {
+        stroke-dashoffset: 0.4;
+    }
+    to {
+        stroke-dashoffset: -1;
+    }
+}
+
+/* A hairline wire with a light that runs along it, left to right. */
+@utility flow-wire {
+    position: relative;
+    overflow: hidden;
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        width: 40%;
+        background: linear-gradient(90deg, transparent, var(--glow-color), transparent);
+        animation: flow-run 2.4s linear infinite;
+    }
+}
+
+@keyframes flow-run {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(250%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flow-hub::before,
+    .flow-hub::after,
+    .flow-trace,
+    .flow-wire::after {
+        animation: none;
+    }
+    .flow-hub::before,
+    .flow-hub::after {
+        opacity: 0;
+    }
+}
+
+/* The Beta pill: its neon glow breathes slowly. Without motion (reduced-motion) it keeps the static glow set on the pill. */
+@keyframes beta-pulse {
+    0%,
+    100% {
+        box-shadow:
+            0 0 10px -2px color-mix(in oklch, var(--glow-color) 45%, transparent),
+            inset 0 0 6px -4px color-mix(in oklch, var(--glow-color) 35%, transparent);
+    }
+    50% {
+        box-shadow:
+            0 0 20px 0 color-mix(in oklch, var(--glow-color) 85%, transparent),
+            inset 0 0 10px -3px color-mix(in oklch, var(--glow-color) 65%, transparent);
+    }
+}
+
+@utility beta-pulse {
+    animation: beta-pulse 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .beta-pulse {
+        animation: none;
+    }
+}
+
+/*
+ * The Markdown body of a blog post or a legal page (`ArticleBody`). The Markdown renderer emits plain tags, so they are styled here, in the site's
+ * language: type and hairlines, code as a square `border-y` strip (design 5.5), no boxes. The page's `scroll-padding-top` keeps a
+ * heading the outline jumps to clear of the sticky header.
+ */
+@layer components {
+    .article-prose {
+        color: var(--muted-foreground);
+        font-size: var(--text-callout);
+        line-height: 1.65;
+    }
+    .article-prose > * + * {
+        margin-top: 1.25rem;
+    }
+    .article-prose :is(h2, h3) {
+        color: var(--foreground);
+    }
+    .article-prose h2 {
+        margin-top: 3rem;
+        border-top: 1px solid var(--border);
+        padding-top: 2rem;
+        font-size: var(--text-title-2);
+        line-height: var(--text-title-2--line-height);
+        letter-spacing: var(--text-title-2--letter-spacing);
+        font-weight: var(--text-title-2--font-weight);
+    }
+    .article-prose > h2:first-child {
+        margin-top: 0;
+        border-top: 0;
+        padding-top: 0;
+    }
+    .article-prose h3 {
+        margin-top: 2rem;
+        font-size: var(--text-headline);
+        line-height: var(--text-headline--line-height);
+        font-weight: var(--text-headline--font-weight);
+    }
+    .article-prose :is(h2, h3) + * {
+        margin-top: 0.75rem;
+    }
+    .article-prose strong {
+        color: var(--foreground);
+        font-weight: 600;
+    }
+    .article-prose a {
+        color: var(--link);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+    .article-prose ul {
+        list-style: disc;
+        padding-left: 1.25rem;
+    }
+    .article-prose ol {
+        list-style: decimal;
+        padding-left: 1.25rem;
+    }
+    .article-prose li + li {
+        margin-top: 0.375rem;
+    }
+    .article-prose blockquote {
+        border-left: 1px solid var(--border);
+        padding-left: 1rem;
+    }
+    .article-prose hr {
+        border-top: 1px solid var(--border);
+    }
+    .article-prose img {
+        max-width: 100%;
+        height: auto;
+    }
+    .article-prose :not(pre) > code {
+        border-radius: var(--radius-xs);
+        background: var(--secondary);
+        padding: 0 0.25rem;
+        color: var(--foreground);
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+    }
+    .article-prose figure.tm-code-frame figcaption {
+        border-top: 1px solid var(--border);
+        padding: 0.5rem 1rem 0;
+        background: color-mix(in oklab, var(--muted) 50%, transparent);
+        color: var(--subtle-foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-caption);
+    }
+    .article-prose figure.tm-code-frame figcaption + pre {
+        border-top: 0;
+    }
+    .article-prose pre {
+        overflow-x: auto;
+        border-block: 1px solid var(--border);
+        padding: 1rem;
+        background: color-mix(in oklab, var(--muted) 50%, transparent);
+        color: var(--foreground);
+        font-family: var(--font-mono);
+        font-size: var(--text-code);
+        line-height: var(--text-code--line-height);
+    }
+    .article-prose table {
+        display: block;
+        overflow-x: auto;
+        border-block: 1px solid var(--border);
+        text-align: left;
+    }
+    .article-prose th {
+        padding: 0.5rem 1rem 0.5rem 0;
+        color: var(--subtle-foreground);
+        font-size: var(--text-overline);
+        font-weight: 400;
+        letter-spacing: var(--text-overline--letter-spacing);
+        text-transform: uppercase;
+    }
+    .article-prose td {
+        border-top: 1px solid var(--border);
+        padding: 0.625rem 1rem 0.625rem 0;
+        vertical-align: top;
+    }
+    /* Highlighted code (`th-*` classes from @tanstack/highlight), drawn with the theme's own colours so it follows light and dark. */
+    .article-prose :is(.th-keyword, .th-command, .th-selector, .th-tag) {
+        color: var(--link);
+    }
+    .article-prose :is(.th-string, .th-inserted) {
+        color: var(--score-excellent);
+    }
+    .article-prose :is(.th-number, .th-literal, .th-attr, .th-property) {
+        color: var(--score-fair);
+    }
+    .article-prose :is(.th-type, .th-variable, .th-heading) {
+        color: var(--score-poor);
+    }
+    .article-prose .th-function {
+        color: var(--foreground);
+        font-weight: 600;
+    }
+    .article-prose :is(.th-comment, .th-meta, .th-operator) {
+        color: var(--subtle-foreground);
+    }
+    .article-prose .th-deleted {
+        color: var(--destructive);
+    }
+}

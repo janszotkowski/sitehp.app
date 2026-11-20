@@ -1,0 +1,41 @@
+{
+    "url": "https://www.mesto-acmeves.example/",
+    "note": "A municipal site on old ASP.NET/IIS: https works but http://www is served as is (no redirect, no HSTS), the bare domain redirects to a different host (a citizen portal), the canonical link points at the http address, the session cookie has HttpOnly but no Secure, and Server/X-Powered-By/X-AspNet-Version leak the stack. No sitemap anywhere. Tests http_redirect, canonical on another scheme, canonical_host with two hosts and cookie_secure.",
+    "certificate": { "daysLeft": 212, "issuer": "Demo Qualified Server CA" },
+    "responses": {
+        "https://www.mesto-acmeves.example/llms.txt": { "status": 404 },
+        "https://www.mesto-acmeves.example/": {
+            "headers": {
+                "content-type": "text/html; charset=utf-8",
+                "server": "Microsoft-IIS/10.0",
+                "x-powered-by": "ASP.NET",
+                "x-aspnet-version": "4.0.30319",
+                "cache-control": "private"
+            },
+            "file": "index.html",
+            "cookies": ["ASP.NET_SessionId=lorem1psum2dolor3sit4amet; path=/; HttpOnly; SameSite=Lax"]
+        },
+        "http://www.mesto-acmeves.example/": { "headers": { "server": "Microsoft-IIS/10.0", "x-powered-by": "ASP.NET" }, "file": "index.html" },
+        "https://mesto-acmeves.example/": { "status": 302, "redirect": "https://portal.mesto-acmeves.example/uvod" },
+        "https://portal.mesto-acmeves.example/uvod": { "file": "portal.html" },
+        "https://www.mesto-acmeves.example/robots.txt": { "headers": { "content-type": "text/plain" }, "file": "robots.txt" },
+        "https://www.mesto-acmeves.example/sitemap.xml": { "status": 404, "file": "404.html" },
+        "https://www.mesto-acmeves.example/sitehp-check-*": { "status": 404, "file": "404.html" }
+    },
+    "expect": {
+        "https_scheme": "pass",
+        "http_redirect": "fail",
+        "hsts": "fail",
+        "info_leak": "warn",
+        "cookie_secure": "fail",
+        "cookie_httponly": "pass",
+        "canonical": "warn",
+        "canonical_host": "warn",
+        "html_lang": "pass",
+        "robots_txt": "pass",
+        "sitemap_xml": "warn",
+        "sitemap_in_robots": "warn",
+        "sitemap_urls": "skipped:no_sample",
+        "soft_404": "pass"
+    }
+}

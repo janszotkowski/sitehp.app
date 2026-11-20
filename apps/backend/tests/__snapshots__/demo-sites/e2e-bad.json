@@ -1,0 +1,465 @@
+{
+    "url": "https://example.org/",
+    "finalUrl": "https://example.org/",
+    "scanStatus": "completed",
+    "score": 41,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "fail",
+            "evidence": {
+                "present": true,
+                "blockedRetrieval": "OAI-SearchBot, ChatGPT-User, Claude-SearchBot, Claude-User, PerplexityBot, Perplexity-User",
+                "refusedBySignal": "",
+                "blockedTraining": "GPTBot, ClaudeBot, anthropic-ai, Google-Extended, Applebot-Extended, CCBot, Bytespider, Amazonbot, Meta-ExternalAgent, cohere-ai, Diffbot"
+            }
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "addresses": "example.org"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "fail",
+            "evidence": {
+                "daysLeft": 3,
+                "validTo": "2026-10-12T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo Test CA"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "pass",
+            "evidence": {
+                "htmlEncoding": "gzip",
+                "htmlBytes": 221,
+                "htmlTransferredBytes": 175,
+                "filesSampled": 0,
+                "filesUncompressed": 0
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "fail",
+            "evidence": {
+                "words": 2,
+                "scripts": 1
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "warn",
+            "evidence": {
+                "cookies": 1,
+                "missing": 1,
+                "names": "session"
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "warn",
+            "evidence": {
+                "cookies": 1,
+                "missing": 1,
+                "names": "session"
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "fail",
+            "evidence": {
+                "cookies": 1,
+                "missing": 1,
+                "names": "session",
+                "rejected": 0
+            }
+        },
+        {
+            "id": "coop",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "csp",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "h1",
+            "status": "fail",
+            "evidence": {
+                "count": 0
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "warn",
+            "evidence": {
+                "count": 2,
+                "skips": 1
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "applicable": false
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "fail",
+            "evidence": {
+                "lang": ""
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "fail",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "http://example.org/",
+                "status": 200
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "pass",
+            "evidence": {
+                "status": 200,
+                "redirects": 0
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "protocol_unknown",
+            "evidence": {
+                "protocol": "unknown",
+                "h3Advertised": false
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "pass",
+            "evidence": {
+                "images": 2,
+                "modern": 0,
+                "legacy": 2,
+                "modernPercent": 0
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "fail",
+            "evidence": {
+                "images": 2,
+                "missing": 2
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "warn",
+            "evidence": {
+                "images": 2,
+                "missing": 2
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "warn",
+            "evidence": {
+                "server": "Apache/2.4.1",
+                "poweredBy": "PHP/7.4.3"
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "warn",
+            "evidence": {
+                "blocks": 0,
+                "invalid": 0,
+                "types": "",
+                "untyped": 0,
+                "retired": ""
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "few_images",
+            "evidence": {
+                "images": 2
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "not_offered",
+            "evidence": {}
+        },
+        {
+            "id": "llms_txt",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "warn",
+            "evidence": {
+                "served": false,
+                "status": 200,
+                "contentType": "text/html"
+            }
+        },
+        {
+            "id": "meta_description",
+            "status": "fail",
+            "evidence": {
+                "length": 0
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "fail",
+            "evidence": {
+                "applicable": true,
+                "active": 1,
+                "passive": 0,
+                "example": "http://cdn.example.org/app.js"
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "fail",
+            "evidence": {
+                "meta": true,
+                "header": false
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "fail",
+            "evidence": {
+                "present": 0,
+                "missing": "og:title, og:description, og:image, og:url"
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "present": 0
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "pass",
+            "evidence": {
+                "htmlBytes": 221,
+                "htmlTransferredBytes": 175,
+                "scripts": 1,
+                "styles": 0,
+                "images": 2,
+                "fonts": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 0,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "warn",
+            "evidence": {
+                "blockingScripts": 1,
+                "blockingStyles": 0
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "fail",
+            "evidence": {
+                "path": "/",
+                "allowed": false,
+                "rule": "Disallow: /"
+            }
+        },
+        {
+            "id": "robots_txt",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blocksAll": true,
+                "sitemaps": 0
+            }
+        },
+        {
+            "id": "seo_title",
+            "status": "fail",
+            "evidence": {
+                "count": 0,
+                "length": 0
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "warn",
+            "evidence": {
+                "listed": 0
+            }
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "soft_404",
+            "status": "fail",
+            "evidence": {
+                "status": 200,
+                "finalUrl": "https://example.org/sitehp-check-11111111-1111-4111-8111-111111111111",
+                "redirected": false
+            }
+        },
+        {
+            "id": "ttfb",
+            "status": "pass",
+            "evidence": {
+                "ttfbMs": 0
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        }
+    ]
+}

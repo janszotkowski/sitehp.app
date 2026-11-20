@@ -1,0 +1,58 @@
+{
+    "url": "https://www.acme-outdoor.example/products/trail-jacket",
+    "note": "A product page of a hosted e-shop platform (Shopify-style): Product JSON-LD with offers, og:type product with price tags, protocol-relative asset URLs, a long platform robots.txt, a sitemap index of product/page/collection sitemaps, a short HSTS (91 days) and a partial CSP (frame-ancestors, upgrade-insecure-requests, no script policy, so the CSP check warns). Tests HSTS below 180 days, frame-ancestors standing in for X-Frame-Options, upgrade-insecure-requests excusing the http og:image, and tracking cookies without HttpOnly.",
+    "certificate": { "daysLeft": 51, "issuer": "Demo Free CA E6" },
+    "responses": {
+        "https://www.acme-outdoor.example/llms.txt": { "status": 404 },
+        "https://www.acme-outdoor.example/products/trail-jacket": {
+            "headers": {
+                "server": "edge",
+                "strict-transport-security": "max-age=7889238",
+                "content-security-policy": "block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;",
+                "x-content-type-options": "nosniff",
+                "x-download-options": "noopen",
+                "x-permitted-cross-domain-policies": "none",
+                "x-xss-protection": "1; mode=block",
+                "x-shopid": "73419001",
+                "x-storefront-renderer-rendered": "1",
+                "x-request-id": "4f6e2a1c-9b0d-4c2e-8f51-0d3a7b6c9e12",
+                "vary": "Accept",
+                "server-timing": "processing;dur=41, db;dur=9, asn;desc=\"64500\"",
+                "alt-svc": "h3=\":443\"; ma=86400"
+            },
+            "file": "product.html",
+            "cookies": [
+                "_shop_y=8c2b5e70-0f3a-4c6d-9e1b-2a7d4f8c1b03; Expires=Sat, 10 Oct 2027 10:00:00 GMT; Domain=acme-outdoor.example; Path=/; SameSite=Lax; Secure",
+                "_shop_s=1d4f7a20-6b3e-4a5c-8d2f-9e0c1b7a4d56; Expires=Fri, 10 Oct 2026 10:30:00 GMT; Domain=acme-outdoor.example; Path=/; SameSite=Lax; Secure",
+                "localization=DE; Expires=Sat, 10 Oct 2027 10:00:00 GMT; Path=/; SameSite=Lax; Secure",
+                "cart_currency=EUR; Expires=Fri, 24 Oct 2026 10:00:00 GMT; Path=/; SameSite=Lax; Secure"
+            ]
+        },
+        "http://www.acme-outdoor.example/": { "redirect": "https://www.acme-outdoor.example/" },
+        "https://acme-outdoor.example/": { "redirect": "https://www.acme-outdoor.example/" },
+        "https://www.acme-outdoor.example/": { "file": "page.html" },
+        "https://www.acme-outdoor.example/robots.txt": { "file": "robots.txt" },
+        "https://www.acme-outdoor.example/sitemap.xml": { "file": "sitemap.xml" },
+        "https://www.acme-outdoor.example/sitemap_products_1.xml?from=1001&to=1042": { "file": "sitemap_products_1.xml" },
+        "https://www.acme-outdoor.example/products/summit-beanie": { "file": "page.html" },
+        "https://www.acme-outdoor.example/products/camp-mug": { "file": "page.html" },
+        "https://www.acme-outdoor.example/sitehp-check-*": { "status": 404, "file": "page.html" }
+    },
+    "expect": {
+        "hsts": "warn",
+        "csp": "warn",
+        "x_frame_options": "pass",
+        "mixed_content": "pass",
+        "cookie_secure": "pass",
+        "cookie_httponly": "warn",
+        "cookie_samesite": "pass",
+        "json_ld": "pass",
+        "open_graph": "pass",
+        "canonical": "pass",
+        "h1": "pass",
+        "sitemap_xml": "pass",
+        "sitemap_urls": "pass",
+        "soft_404": "pass",
+        "canonical_host": "pass"
+    }
+}

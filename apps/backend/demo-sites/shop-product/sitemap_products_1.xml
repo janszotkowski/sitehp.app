@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://www.acme-outdoor.example/</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://www.acme-outdoor.example/products/trail-jacket</loc>
+    <lastmod>2026-10-02T09:14:00+02:00</lastmod>
+    <changefreq>daily</changefreq>
+    <image:image>
+      <image:loc>https://www.acme-outdoor.example/cdn/shop/files/trail-jacket-front.jpg?v=1712345678</image:loc>
+      <image:title>Trail Jacket</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.acme-outdoor.example/products/summit-beanie</loc>
+    <lastmod>2026-09-18T16:40:00+02:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://www.acme-outdoor.example/products/ridge-pack-28</loc>
+    <lastmod>2026-09-02T11:05:00+02:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://www.acme-outdoor.example/products/camp-mug</loc>
+    <lastmod>2026-08-27T08:30:00+02:00</lastmod>
+    <changefreq>daily</changefreq>
+  </url>
+</urlset>

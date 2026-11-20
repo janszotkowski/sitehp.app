@@ -1,0 +1,45 @@
+{
+    "url": "https://www.stavebniny-acme.example/",
+    "note": "A small-business site from the early 2000s, still running: an HTML 4.01 table layout in upper case, <font> and <center>, a title full of entities (&ndash; &amp; &aacute; &raquo;), no viewport and no lang, images without alt (some over http, so passive mixed content on the https page), a PHP session cookie without flags, Apache and PHP versions in the headers, plain http served without a redirect, a missing page answered 200 with the home page, no sitemap, and a certificate expiring in 4 days. The bare host does not answer.",
+    "certificate": { "daysLeft": 4, "issuer": "Demo Free CA R11" },
+    "responses": {
+        "https://www.stavebniny-acme.example/llms.txt": { "status": 404 },
+        "https://www.stavebniny-acme.example/": {
+            "headers": {
+                "content-type": "text/html",
+                "content-encoding": "identity",
+                "server": "Apache/2.2.22 (Debian)",
+                "x-powered-by": "PHP/5.4.45-0+deb7u14",
+                "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+                "pragma": "no-cache"
+            },
+            "file": "index.html",
+            "cookies": ["PHPSESSID=lorem1psum2dolor3sit4amet5; path=/"]
+        },
+        "http://www.stavebniny-acme.example/": { "headers": { "content-type": "text/html", "server": "Apache/2.2.22 (Debian)" }, "file": "index.html" },
+        "https://www.stavebniny-acme.example/robots.txt": { "headers": { "content-type": "text/plain" }, "file": "robots.txt" },
+        "https://www.stavebniny-acme.example/sitemap.xml": { "status": 404, "headers": { "content-type": "text/html; charset=iso-8859-1" } },
+        "https://www.stavebniny-acme.example/sitehp-check-*": { "headers": { "content-type": "text/html" }, "file": "index.html" }
+    },
+    "expect": {
+        "https_scheme": "pass",
+        "http_redirect": "fail",
+        "compression": "fail",
+        "cert_valid": "pass",
+        "cert_expiry": "fail",
+        "info_leak": "warn",
+        "cookie_secure": "fail",
+        "cookie_httponly": "warn",
+        "cookie_samesite": "warn",
+        "mixed_content": "warn",
+        "seo_title": "pass",
+        "meta_description": "warn",
+        "h1": "fail",
+        "viewport": "fail",
+        "html_lang": "fail",
+        "img_alt": "fail",
+        "robots_txt": "pass",
+        "sitemap_xml": "warn",
+        "soft_404": "fail"
+    }
+}

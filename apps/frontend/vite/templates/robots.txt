@@ -1,0 +1,29 @@
+# Default rules for all crawlers.
+User-agent: *
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Allow: /llms.txt
+
+# AI search / assistant crawlers. A named group REPLACES the `*` group (crawlers do not merge them),
+# so the content signal is repeated here.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: GoogleOther
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+Allow: /
+Allow: /llms.txt
+
+User-agent: Bytespider
+Disallow: /
+Allow: /llms.txt
+
+Sitemap: https://sitehp.app/sitemap.xml

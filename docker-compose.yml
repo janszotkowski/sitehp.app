@@ -1,0 +1,111 @@
+# Local data services: Postgres 16 and Redis 7, data kept in named volumes (`docker compose down -v` wipes them).
+#   `docker compose up -d`            only the data services; run the apps yourself with `pnpm dev` (set DATABASE_URL and REDIS_URL in apps/backend/.env)
+#   `pnpm stack`                      the whole product the way production runs it: data services, API, worker and frontend, built from the Dockerfile
+# The apps are in the `app` profile, so a plain `docker compose up` never takes ports 3000 and 4000 from `pnpm dev`.
+# Credentials come from the environment (or a root .env file) with development defaults: POSTGRES_PASSWORD and REDIS_PASSWORD are both
+# `sitehp` unless set. They go into URLs as they are, so a password with URL-special characters (@ : / ? #) must be percent-encoded.
+# The images are pinned by digest (the multi-arch index): `docker buildx imagetools inspect <image:tag>` gives the new one.
+services:
+    postgres:
+        image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+        environment:
+            POSTGRES_USER: sitehp
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sitehp}
+            POSTGRES_DB: sitehp
+        ports:
+            - '127.0.0.1:5433:5432'
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U sitehp -d sitehp']
+            interval: 5s
+            timeout: 3s
+            retries: 10
+
+    # The job queue (BullMQ) and the wake-up channel for live scans. Disposable by design: a lost Redis loses in-flight scans, never reports.
+    # BullMQ needs `noeviction`: a job must never be thrown away to make room. The memory is capped so the queue cannot grow without bound
+    # (finished jobs are trimmed after an hour or above 1000, see bull-queue.ts); at the cap Redis refuses new writes instead of dropping jobs.
+    # Password protected (`requirepass`); redis-cli reads it from REDISCLI_AUTH, so the healthcheck does not put it on a command line.
+    redis:
+        image: redis:7-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+        command: ['redis-server', '--maxmemory', '256mb', '--maxmemory-policy', 'noeviction', '--requirepass', '${REDIS_PASSWORD:-sitehp}']
+        environment:
+            REDISCLI_AUTH: ${REDIS_PASSWORD:-sitehp}
+        ports:
+            - '127.0.0.1:6379:6379'
+        volumes:
+            - redis-data:/data
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 3s
+            retries: 10
+
+    # The API: validates, queues, streams. It never scans. Needs the database (migrations run at start-up) and Redis.
+    api:
+        profiles: [app]
+        build: { context: ., target: backend }
+        image: sitehp-api
+        environment: &backend-env
+            NODE_ENV: production
+            LOG_LEVEL: info
+            DATABASE_URL: postgres://sitehp:${POSTGRES_PASSWORD:-sitehp}@postgres:5432/sitehp
+            REDIS_URL: redis://:${REDIS_PASSWORD:-sitehp}@redis:6379
+            # The browser at localhost:3000 calls this API at localhost:4000.
+            CORS_ORIGINS: http://localhost:3000
+        ports:
+            - '127.0.0.1:4000:4000'
+        # The API closes its streams and connections for up to 10 s when stopped: a little more, so it exits cleanly and is not killed.
+        stop_grace_period: 15s
+        depends_on:
+            postgres: { condition: service_healthy }
+            redis: { condition: service_healthy }
+        restart: unless-stopped
+
+    # Takes scans off the queue and runs them: the only process that touches the scanned sites. Scale it with `--scale worker=3`.
+    # It starts after the API is healthy so that only one of them applies the database migrations.
+    worker:
+        profiles: [app]
+        build: { context: ., target: backend }
+        image: sitehp-api
+        command: ['node', 'dist/main.worker.mjs']
+        environment: *backend-env
+        # The worker finishes the scans in progress for up to 60 s when stopped; Docker's default 10 s would cut them off.
+        stop_grace_period: 70s
+        # It serves no HTTP (the image's healthcheck asks /v1/health): it touches a heartbeat file at start and every 15 s, and is
+        # healthy while that file is less than 60 s old (WORKER_HEARTBEAT_FILE, default /tmp/sitehp-worker-heartbeat).
+        healthcheck:
+            test:
+                - CMD
+                - node
+                - -e
+                - "try { const { mtimeMs } = require('node:fs').statSync(process.env.WORKER_HEARTBEAT_FILE || '/tmp/sitehp-worker-heartbeat'); process.exit(Date.now() - mtimeMs < 60000 ? 0 : 1) } catch { process.exit(1) }"
+            interval: 15s
+            timeout: 3s
+            start_period: 30s
+            retries: 3
+        depends_on:
+            api: { condition: service_healthy }
+        restart: unless-stopped
+
+    frontend:
+        profiles: [app]
+        build:
+            context: .
+            target: frontend
+            args:
+                VITE_API_URL: http://localhost:4000
+                VITE_SITE_URL: http://localhost:3000
+        image: sitehp-frontend
+        environment:
+            # The frontend's server reaches the API by its name on the compose network.
+            API_INTERNAL_URL: http://api:4000
+        ports:
+            - '127.0.0.1:3000:3000'
+        depends_on:
+            api: { condition: service_healthy }
+        restart: unless-stopped
+
+volumes:
+    postgres-data:
+    redis-data:

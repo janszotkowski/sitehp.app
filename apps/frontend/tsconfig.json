@@ -1,0 +1,25 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "jsx": "react-jsx",
+        "allowJs": true,
+        "allowImportingTsExtensions": true,
+        "lib": ["ES2023", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "types": ["vite/client"],
+        "paths": {
+            "@components/*": ["./src/components/*"],
+            "@config/*": ["./src/config/*"],
+            "@lib/*": ["./src/lib/*"],
+            "@paraglide/*": ["./src/paraglide/*"],
+            "@routes/*": ["./src/routes/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@src/*": ["./src/*"],
+            "@tests/*": ["./tests/*"],
+            "@vite/*": ["./vite/*"],
+            "@hooks/*": ["./src/hooks/*"]
+        }
+    },
+    "include": ["src", "vite", "scripts", "tests", "vite.config.ts", "vitest.config.ts"]
+}

@@ -1,0 +1,33 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "frontend-dev",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": [
+                "--filter",
+                "@sitehp.app/frontend",
+                "exec",
+                "vite",
+                "dev",
+                "--port",
+                "3160",
+                "--strictPort"
+            ],
+            "port": 3160
+        },
+        {
+            "name": "backend-demo",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": [
+                "--filter",
+                "@sitehp.app/backend",
+                "dev:demo"
+            ],
+            "env": {
+                "CORS_ORIGINS": "http://localhost:3000,http://localhost:3160"
+            },
+            "port": 4000
+        }
+    ]
+}

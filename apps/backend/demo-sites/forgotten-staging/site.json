@@ -1,0 +1,36 @@
+{
+    "url": "https://staging.acme-studio.example/",
+    "note": "A staging copy left public and indexable by link: the page says noindex twice (meta robots and X-Robots-Tag), robots.txt is Disallow: /, the canonical points at the production host, and nginx announces its version. Everything else about the page is fine. Tests noindex from both sources, robots_allows_page failing on the whole-site block, a canonical to another host and a dotted Server version.",
+    "certificate": { "daysLeft": 10, "issuer": "Demo Free CA R11" },
+    "responses": {
+        "https://staging.acme-studio.example/llms.txt": { "status": 404 },
+        "https://staging.acme-studio.example/": {
+            "headers": {
+                "server": "nginx/1.18.0 (Ubuntu)",
+                "x-robots-tag": "noindex, nofollow",
+                "strict-transport-security": "max-age=31536000",
+                "x-frame-options": "SAMEORIGIN",
+                "x-content-type-options": "nosniff",
+                "referrer-policy": "strict-origin-when-cross-origin"
+            },
+            "file": "index.html"
+        },
+        "http://staging.acme-studio.example/": { "redirect": "https://staging.acme-studio.example/" },
+        "https://staging.acme-studio.example/robots.txt": { "headers": { "server": "nginx/1.18.0 (Ubuntu)" }, "file": "robots.txt" },
+        "https://staging.acme-studio.example/sitemap.xml": { "status": 404, "headers": { "server": "nginx/1.18.0 (Ubuntu)" }, "file": "404.html" },
+        "https://staging.acme-studio.example/sitehp-check-*": { "status": 404, "headers": { "server": "nginx/1.18.0 (Ubuntu)" }, "file": "404.html" }
+    },
+    "expect": {
+        "http_redirect": "pass",
+        "cert_expiry": "warn",
+        "info_leak": "warn",
+        "noindex": "fail",
+        "canonical": "warn",
+        "seo_title": "pass",
+        "h1": "pass",
+        "robots_allows_page": "fail",
+        "sitemap_xml": "warn",
+        "sitemap_in_robots": "warn",
+        "soft_404": "pass"
+    }
+}

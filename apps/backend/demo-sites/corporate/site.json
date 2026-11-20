@@ -1,0 +1,45 @@
+{
+    "url": "https://acme-group.example/",
+    "note": "A corporate site where the bare domain redirects to www (also for robots.txt), headers are mostly right but the CSP allows 'unsafe-inline' scripts, and the sitemap is large (202 addresses, sampled first/middle/last). A missing page redirects 301 → 302 to the home page: the classic soft 404. Tests a single permanent redirect being fine, soft_404 on a redirect home, and sampling a big sitemap.",
+    "certificate": { "daysLeft": 301, "issuer": "Demo OV CA 2025" },
+    "responses": {
+        "https://acme-group.example/llms.txt": { "redirect": "https://www.acme-group.example/llms.txt" },
+        "https://www.acme-group.example/llms.txt": { "status": 404 },
+        "https://acme-group.example/": { "redirect": "https://www.acme-group.example/" },
+        "https://www.acme-group.example/": {
+            "headers": {
+                "server": "Apache",
+                "strict-transport-security": "max-age=31536000; includeSubDomains",
+                "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://tags.acme-group.example; img-src 'self' data:; style-src 'self' 'unsafe-inline'",
+                "x-frame-options": "SAMEORIGIN",
+                "x-content-type-options": "nosniff",
+                "referrer-policy": "strict-origin-when-cross-origin",
+                "permissions-policy": "geolocation=(), camera=(), microphone=()",
+                "cache-control": "max-age=600"
+            },
+            "file": "index.html"
+        },
+        "http://acme-group.example/": { "redirect": "https://www.acme-group.example/" },
+        "https://acme-group.example/robots.txt": { "redirect": "https://www.acme-group.example/robots.txt" },
+        "https://www.acme-group.example/robots.txt": { "file": "robots.txt" },
+        "https://www.acme-group.example/sitemap.xml": { "file": "sitemap.xml" },
+        "https://www.acme-group.example/reference/projekt-028/": { "file": "page.html" },
+        "https://www.acme-group.example/ke-stazeni/vyrocni-zprava-2025/": { "file": "page.html" },
+        "https://acme-group.example/sitehp-check-*": { "redirect": "https://www.acme-group.example/sitehp-check-*" },
+        "https://www.acme-group.example/sitehp-check-*": { "status": 302, "redirect": "https://www.acme-group.example/" }
+    },
+    "expect": {
+        "https_scheme": "pass",
+        "http_redirect": "pass",
+        "hsts": "pass",
+        "csp": "warn",
+        "redirect_chain": "pass",
+        "canonical": "pass",
+        "canonical_host": "pass",
+        "robots_txt": "pass",
+        "sitemap_xml": "pass",
+        "sitemap_in_robots": "pass",
+        "sitemap_urls": "pass",
+        "soft_404": "fail"
+    }
+}

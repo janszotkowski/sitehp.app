@@ -1,0 +1,44 @@
+{
+    "name": "sitehp",
+    "version": "0.0.0",
+    "private": true,
+    "description": "sitehp.app – HP skóre webu a seřazený seznam oprav",
+    "type": "module",
+    "scripts": {
+        "build": "turbo run build",
+        "dev": "turbo run dev",
+        "start": "turbo run start",
+        "lint": "oxlint --deny-warnings",
+        "lint:fix": "oxlint --fix",
+        "typecheck": "turbo run typecheck",
+        "test": "turbo run test",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
+        "policy": "node tools/check-policy.js",
+        "verify": "pnpm policy && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm smoke && pnpm e2e",
+        "env:init": "node tools/init-env.js",
+        "stack": "docker compose --profile app up --build",
+        "stack:down": "docker compose --profile app down",
+        "smoke": "node tools/smoke.js",
+        "e2e": "pnpm --filter @sitehp.app/e2e test:e2e"
+    },
+    "devDependencies": {
+        "oxfmt": "0.75.0",
+        "oxlint": "1.90.0",
+        "turbo": "2.11.10",
+        "typescript": "7.0.2"
+    },
+    "devEngines": {
+        "packageManager": {
+            "name": "pnpm",
+            "version": "12.11.2",
+            "onFail": "download"
+        },
+        "runtime": {
+            "name": "node",
+            "version": "24.22.3",
+            "onFail": "error"
+        }
+    },
+    "packageManager": "pnpm@12.11.2"
+}

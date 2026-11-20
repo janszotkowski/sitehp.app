@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /app/
+
+Sitemap: https://acme-analytics.example/sitemap.xml

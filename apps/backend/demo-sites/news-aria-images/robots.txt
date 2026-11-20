@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /search
+Disallow: /preview/
+Allow: /
+
+Sitemap: https://news.acme-daily.example/sitemaps/index.xml

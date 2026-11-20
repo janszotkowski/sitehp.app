@@ -1,0 +1,30 @@
+{
+    "url": "https://example.org/",
+    "note": "The browser tests' site with clear faults (apps/e2e BAD_SITE): no title, noindex, an http script (active mixed content), images without alt, a skipped heading level, robots.txt forbidding everything, no sitemap, a soft 404, http left unencrypted, a cookie without flags, a certificate about to expire and version-leaking headers.",
+    "certificate": { "daysLeft": 3 },
+    "responses": {
+        "https://example.org/llms.txt": { "status": 404 },
+        "https://example.org/": {
+            "headers": { "content-type": "text/html", "server": "Apache/2.4.1", "x-powered-by": "PHP/7.4.3" },
+            "file": "index.html",
+            "cookies": ["session=abc123; Path=/"]
+        },
+        "http://example.org/": { "headers": { "content-type": "text/html" } },
+        "https://example.org/robots.txt": { "file": "robots.txt" },
+        "https://example.org/sitemap.xml": { "status": 404, "headers": { "content-type": "text/html" } },
+        "https://example.org/sitehp-check-*": { "headers": { "content-type": "text/html" } }
+    },
+    "expect": {
+        "http_redirect": "fail",
+        "cert_expiry": "fail",
+        "mixed_content": "fail",
+        "seo_title": "fail",
+        "noindex": "fail",
+        "img_alt": "fail",
+        "heading_order": "warn",
+        "robots_allows_page": "fail",
+        "soft_404": "fail",
+        "cookie_secure": "fail",
+        "info_leak": "warn"
+    }
+}

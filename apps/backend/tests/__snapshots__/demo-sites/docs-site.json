@@ -1,0 +1,496 @@
+{
+    "url": "https://docs.acme-cloud.example/en/getting-started/",
+    "finalUrl": "https://docs.acme-cloud.example/en/getting-started/",
+    "scanStatus": "completed",
+    "score": 100,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blockedRetrieval": "",
+                "refusedBySignal": "",
+                "blockedTraining": ""
+            }
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "absolute": true,
+                "matches": true,
+                "href": "https://docs.acme-cloud.example/en/getting-started/"
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "addresses": "docs.acme-cloud.example"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "pass",
+            "evidence": {
+                "daysLeft": 70,
+                "validTo": "2026-12-18T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo Free CA E5"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "pass",
+            "evidence": {
+                "htmlEncoding": "gzip",
+                "htmlBytes": 3420,
+                "htmlTransferredBytes": 1371,
+                "filesSampled": 0,
+                "filesUncompressed": 0
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "pass",
+            "evidence": {
+                "words": 92,
+                "scripts": 1
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "skipped",
+            "skippedReason": "not_applicable",
+            "evidence": {
+                "cookies": 0
+            }
+        },
+        {
+            "id": "coop",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "same-origin"
+            }
+        },
+        {
+            "id": "csp",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; up",
+                "issues": ""
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "pass",
+            "evidence": {
+                "present": true
+            }
+        },
+        {
+            "id": "h1",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "h1": "Getting started"
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "pass",
+            "evidence": {
+                "count": 5,
+                "skips": 0
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "count": 5,
+                "invalid": 0,
+                "self": true
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "max-age=63072000; includeSubDomains; preload",
+                "includeSubDomains": true,
+                "preload": true
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "pass",
+            "evidence": {
+                "lang": "en"
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "pass",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "https://docs.acme-cloud.example/en/",
+                "status": 200
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "pass",
+            "evidence": {
+                "status": 200,
+                "redirects": 0
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "protocol_unknown",
+            "evidence": {
+                "protocol": "unknown",
+                "h3Advertised": false
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "pass",
+            "evidence": {
+                "images": 1,
+                "modern": 1,
+                "legacy": 0,
+                "modernPercent": 100
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "pass",
+            "evidence": {
+                "images": 2,
+                "missing": 0
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "pass",
+            "evidence": {
+                "images": 2,
+                "missing": 0
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "pass",
+            "evidence": {
+                "server": "",
+                "poweredBy": null
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "pass",
+            "evidence": {
+                "blocks": 1,
+                "invalid": 0,
+                "types": "TechArticle, BreadcrumbList",
+                "untyped": 0,
+                "retired": ""
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "few_images",
+            "evidence": {
+                "images": 2
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "not_offered",
+            "evidence": {}
+        },
+        {
+            "id": "llms_txt",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "hasTitle": true,
+                "links": 2,
+                "relative": 0
+            }
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "pass",
+            "evidence": {
+                "served": true,
+                "contentType": "text/markdown; charset=utf-8",
+                "varyAccept": true
+            }
+        },
+        {
+            "id": "meta_description",
+            "status": "pass",
+            "evidence": {
+                "length": 125,
+                "description": "Create an Acme Cloud project, install the command-line tool and deploy your first service in under ten minutes, step by step."
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "upgraded": true
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "pass",
+            "evidence": {
+                "meta": false,
+                "header": false
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "pass",
+            "evidence": {
+                "present": 4,
+                "missing": ""
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "warn",
+            "evidence": {
+                "missing": "og:site_name, og:locale, og:image:alt",
+                "imageAbsolute": true
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "pass",
+            "evidence": {
+                "htmlBytes": 3420,
+                "htmlTransferredBytes": 1371,
+                "scripts": 1,
+                "styles": 1,
+                "images": 2,
+                "fonts": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 0,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "strict-origin-when-cross-origin",
+                "policy": "strict-origin-when-cross-origin"
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "pass",
+            "evidence": {
+                "blockingScripts": 0,
+                "blockingStyles": 1
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "pass",
+            "evidence": {
+                "path": "/en/getting-started/",
+                "allowed": true,
+                "rule": "Allow: /"
+            }
+        },
+        {
+            "id": "robots_txt",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blocksAll": false,
+                "sitemaps": 1
+            }
+        },
+        {
+            "id": "seo_title",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "length": 42,
+                "title": "Getting started – Acme Cloud Documentation"
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "pass",
+            "evidence": {
+                "listed": 1
+            }
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "pass",
+            "evidence": {
+                "sampled": 3,
+                "failing": 0,
+                "redirected": 0,
+                "unindexable": 0,
+                "blocked": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "valid": true,
+                "kind": "urlset",
+                "addresses": 9,
+                "foreign": 0,
+                "insecure": 0,
+                "lastmod": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "soft_404",
+            "status": "pass",
+            "evidence": {
+                "status": 404,
+                "finalUrl": "https://docs.acme-cloud.example/sitehp-check-11111111-1111-4111-8111-111111111111",
+                "redirected": false
+            }
+        },
+        {
+            "id": "ttfb",
+            "status": "pass",
+            "evidence": {
+                "ttfbMs": 0
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "card": "summary"
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "content": "width=device-width, initial-scale=1",
+                "zoomBlocked": false
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "nosniff"
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "source": "csp",
+                "open": false
+            }
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /kosik/
+Disallow: /objednavka/
+Disallow: /vyhledavani/
+Disallow: /*?razeni=
+Disallow: /*?strana=
+Disallow: /admin/
+
+Sitemap: https://www.acme-obchod.example/sitemap.xml

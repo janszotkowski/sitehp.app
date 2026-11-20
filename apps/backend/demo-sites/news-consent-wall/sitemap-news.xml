@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+<url>
+<loc>https://www.zpravy-acme.example/domaci/obec-otevrela-knihovnu-41190</loc>
+<news:news><news:publication><news:name>Zprávy Acme</news:name><news:language>cs</news:language></news:publication><news:publication_date>2026-10-09T18:20:00+02:00</news:publication_date><news:title>Obec otevřela novou knihovnu</news:title></news:news>
+</url>
+<url>
+<loc>https://www.zpravy-acme.example/sport/mistni-klub-postoupil-41101</loc>
+<news:news><news:publication><news:name>Zprávy Acme</news:name><news:language>cs</news:language></news:publication><news:publication_date>2026-10-09T15:05:00+02:00</news:publication_date><news:title>Místní klub postoupil do finále</news:title></news:news>
+</url>
+<url>
+<loc>https://www.zpravy-acme.example/kultura/festival-svetla-41022</loc>
+<news:news><news:publication><news:name>Zprávy Acme</news:name><news:language>cs</news:language></news:publication><news:publication_date>2026-10-08T09:40:00+02:00</news:publication_date><news:title>Festival světla začíná v pátek</news:title></news:news>
+</url>
+</urlset>

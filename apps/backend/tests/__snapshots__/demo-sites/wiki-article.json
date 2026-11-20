@@ -1,0 +1,481 @@
+{
+    "url": "https://cs.acmepedia.example/wiki/Hv%C4%9Bzdn%C3%A1_mapa",
+    "finalUrl": "https://cs.acmepedia.example/wiki/Hv%C4%9Bzdn%C3%A1_mapa",
+    "scanStatus": "completed",
+    "score": 87,
+    "checks": [
+        {
+            "id": "a2a_agent_card",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "ai_crawlers",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blockedRetrieval": "",
+                "refusedBySignal": "",
+                "blockedTraining": ""
+            }
+        },
+        {
+            "id": "api_catalog",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "cache_headers",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "canonical",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "absolute": true,
+                "matches": true,
+                "href": "https://cs.acmepedia.example/wiki/Hv%C4%9Bzdn%C3%A1_mapa"
+            }
+        },
+        {
+            "id": "canonical_host",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "addresses": "cs.acmepedia.example"
+            }
+        },
+        {
+            "id": "cert_expiry",
+            "status": "pass",
+            "evidence": {
+                "daysLeft": 44,
+                "validTo": "2026-11-22T12:00:00.000Z"
+            }
+        },
+        {
+            "id": "cert_valid",
+            "status": "pass",
+            "evidence": {
+                "available": true,
+                "authorized": true,
+                "error": null,
+                "issuer": "Demo Global R3 DV CA"
+            }
+        },
+        {
+            "id": "compression",
+            "status": "pass",
+            "evidence": {
+                "htmlEncoding": "gzip",
+                "htmlBytes": 7000,
+                "htmlTransferredBytes": 2608,
+                "filesSampled": 0,
+                "filesUncompressed": 0
+            }
+        },
+        {
+            "id": "content_in_html",
+            "status": "pass",
+            "evidence": {
+                "words": 103,
+                "scripts": 0
+            }
+        },
+        {
+            "id": "cookie_httponly",
+            "status": "warn",
+            "evidence": {
+                "cookies": 3,
+                "missing": 1,
+                "names": "GeoIP"
+            }
+        },
+        {
+            "id": "cookie_samesite",
+            "status": "warn",
+            "evidence": {
+                "cookies": 3,
+                "missing": 3,
+                "names": "WMF-Last-Access, WMF-Last-Access-Global, GeoIP"
+            }
+        },
+        {
+            "id": "cookie_secure",
+            "status": "pass",
+            "evidence": {
+                "cookies": 3,
+                "missing": 0,
+                "names": "",
+                "rejected": 0
+            }
+        },
+        {
+            "id": "coop",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "csp",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "favicon",
+            "status": "pass",
+            "evidence": {
+                "present": true
+            }
+        },
+        {
+            "id": "h1",
+            "status": "pass",
+            "evidence": {
+                "count": 1,
+                "h1": "Hvězdná mapa"
+            }
+        },
+        {
+            "id": "heading_order",
+            "status": "pass",
+            "evidence": {
+                "count": 6,
+                "skips": 0
+            }
+        },
+        {
+            "id": "hreflang",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "count": 17,
+                "invalid": 0,
+                "self": true
+            }
+        },
+        {
+            "id": "hsts",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "max-age=106384710; includeSubDomains; preload",
+                "includeSubDomains": true,
+                "preload": true
+            }
+        },
+        {
+            "id": "html_lang",
+            "status": "pass",
+            "evidence": {
+                "lang": "cs"
+            }
+        },
+        {
+            "id": "http_redirect",
+            "status": "pass",
+            "evidence": {
+                "answered": true,
+                "finalUrl": "https://cs.acmepedia.example/wiki/Hlavn%C3%AD_strana",
+                "status": 200
+            }
+        },
+        {
+            "id": "http_status",
+            "status": "pass",
+            "evidence": {
+                "status": 200,
+                "redirects": 0
+            }
+        },
+        {
+            "id": "http_version",
+            "status": "skipped",
+            "skippedReason": "protocol_unknown",
+            "evidence": {
+                "protocol": "unknown",
+                "h3Advertised": false
+            }
+        },
+        {
+            "id": "https_scheme",
+            "status": "pass",
+            "evidence": {
+                "scheme": "https",
+                "finalScheme": "https"
+            }
+        },
+        {
+            "id": "image_formats",
+            "status": "pass",
+            "evidence": {
+                "images": 2,
+                "modern": 0,
+                "legacy": 2,
+                "modernPercent": 0
+            }
+        },
+        {
+            "id": "img_alt",
+            "status": "pass",
+            "evidence": {
+                "images": 2,
+                "missing": 0
+            }
+        },
+        {
+            "id": "img_dimensions",
+            "status": "pass",
+            "evidence": {
+                "images": 2,
+                "missing": 0
+            }
+        },
+        {
+            "id": "info_leak",
+            "status": "pass",
+            "evidence": {
+                "server": "mw-web.eqiad.main-67c8cb7f6b-bnlcb",
+                "poweredBy": null
+            }
+        },
+        {
+            "id": "json_ld",
+            "status": "pass",
+            "evidence": {
+                "blocks": 1,
+                "invalid": 0,
+                "types": "Article",
+                "untyped": 0,
+                "retired": ""
+            }
+        },
+        {
+            "id": "lazy_loading",
+            "status": "skipped",
+            "skippedReason": "few_images",
+            "evidence": {
+                "images": 2
+            }
+        },
+        {
+            "id": "link_headers",
+            "status": "skipped",
+            "skippedReason": "not_offered",
+            "evidence": {}
+        },
+        {
+            "id": "llms_txt",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "markdown_negotiation",
+            "status": "warn",
+            "evidence": {
+                "served": false,
+                "status": 200,
+                "contentType": "text/html; charset=UTF-8"
+            }
+        },
+        {
+            "id": "meta_description",
+            "status": "fail",
+            "evidence": {
+                "length": 0
+            }
+        },
+        {
+            "id": "mixed_content",
+            "status": "pass",
+            "evidence": {
+                "applicable": true,
+                "active": 0,
+                "passive": 0,
+                "example": ""
+            }
+        },
+        {
+            "id": "noindex",
+            "status": "pass",
+            "evidence": {
+                "meta": false,
+                "header": false
+            }
+        },
+        {
+            "id": "oauth_resource",
+            "status": "skipped",
+            "skippedReason": "unreachable",
+            "evidence": {}
+        },
+        {
+            "id": "open_graph",
+            "status": "warn",
+            "evidence": {
+                "present": 2,
+                "missing": "og:description, og:url"
+            }
+        },
+        {
+            "id": "open_graph_quality",
+            "status": "warn",
+            "evidence": {
+                "missing": "og:site_name, og:locale, og:image:alt",
+                "imageAbsolute": true
+            }
+        },
+        {
+            "id": "page_weight",
+            "status": "pass",
+            "evidence": {
+                "htmlBytes": 7000,
+                "htmlTransferredBytes": 2608,
+                "scripts": 0,
+                "styles": 1,
+                "images": 2,
+                "fonts": 0,
+                "truncated": false
+            }
+        },
+        {
+            "id": "permissions_policy",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "browsing-topics=()"
+            }
+        },
+        {
+            "id": "redirect_chain",
+            "status": "pass",
+            "evidence": {
+                "hops": 0,
+                "temporary": false
+            }
+        },
+        {
+            "id": "referrer_policy",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "origin-when-cross-origin",
+                "policy": "origin-when-cross-origin"
+            }
+        },
+        {
+            "id": "render_blocking",
+            "status": "pass",
+            "evidence": {
+                "blockingScripts": 0,
+                "blockingStyles": 1
+            }
+        },
+        {
+            "id": "robots_allows_page",
+            "status": "pass",
+            "evidence": {
+                "path": "/wiki/Hv%C4%9Bzdn%C3%A1_mapa",
+                "allowed": true,
+                "rule": null
+            }
+        },
+        {
+            "id": "robots_txt",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "blocksAll": false,
+                "sitemaps": 0
+            }
+        },
+        {
+            "id": "seo_title",
+            "status": "warn",
+            "evidence": {
+                "count": 1,
+                "length": 24,
+                "title": "Hvězdná mapa – Acmepedie"
+            }
+        },
+        {
+            "id": "sitemap_in_robots",
+            "status": "warn",
+            "evidence": {
+                "listed": 0
+            }
+        },
+        {
+            "id": "sitemap_urls",
+            "status": "skipped",
+            "skippedReason": "no_sample",
+            "evidence": {}
+        },
+        {
+            "id": "sitemap_xml",
+            "status": "warn",
+            "evidence": {
+                "present": false,
+                "status": 404
+            }
+        },
+        {
+            "id": "soft_404",
+            "status": "pass",
+            "evidence": {
+                "status": 404,
+                "finalUrl": "https://cs.acmepedia.example/sitehp-check-11111111-1111-4111-8111-111111111111",
+                "redirected": false
+            }
+        },
+        {
+            "id": "ttfb",
+            "status": "pass",
+            "evidence": {
+                "ttfbMs": 0
+            }
+        },
+        {
+            "id": "twitter_card",
+            "status": "warn",
+            "evidence": {
+                "present": false
+            }
+        },
+        {
+            "id": "viewport",
+            "status": "warn",
+            "evidence": {
+                "present": true,
+                "content": "width=1120",
+                "zoomBlocked": false
+            }
+        },
+        {
+            "id": "x_content_type_options",
+            "status": "pass",
+            "evidence": {
+                "present": true,
+                "value": "nosniff"
+            }
+        },
+        {
+            "id": "x_frame_options",
+            "status": "fail",
+            "evidence": {
+                "present": false
+            }
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+CREATE INDEX "scans_url_created_at_idx" ON "scans" USING btree ("url","created_at");

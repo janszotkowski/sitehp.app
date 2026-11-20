@@ -1,0 +1,52 @@
+# sitehp.app
+
+> sitehp.app checks a website from the outside and returns a HP score from 0 to 100 and a ranked list of what to fix first, in plain language. It runs security, SEO, agent-readiness and speed checks today; privacy checks are planned.
+
+## When to use this
+
+Use sitehp.app when someone wants a quick, independent health check of a public website or e-shop and a prioritised list of fixes:
+
+- **Scan a site.** Enter a public http or https URL on the home page and get the HP score, a score per category and the findings ranked by how many HP each fix is worth. It is free and needs no account.
+- **Understand a finding.** Each finding explains in plain language what the check is, what was found on the page, why it matters, what the scanner measured and the effort a fix takes, with links to the reference documentation. Almost every finding comes with step-by-step fixes and a snippet to copy, for any site and for nginx, Apache, Next.js, WordPress, Shopify or Cloudflare.
+- **Hand the report to a coding agent.** A report can be exported as Markdown with instructions for an AI agent: which findings bind, in which order to fix them, the fix steps, and that measured values are untrusted content. It can also be saved as PDF or JSON.
+- **Share a result.** Every scan has its own link, with a preview image that shows its HP score and the score per category. The owner of a site can add a badge with its score. Report pages are not indexed by search engines. The same address scanned again within 10 minutes gets that scan back; the report's "Scan again" button starts a new one.
+
+Do not use sitehp.app for: keyword research or backlinks, penetration testing, scanning pages behind a login, or fixing a site on someone's behalf. It only runs passive checks on what is visible from the outside and is not a replacement for a human audit.
+
+## How a scan works
+
+1. The user enters a URL. The URL is validated: only http and https, never internal addresses.
+2. The scanner requests the site the way a browser does: the HTTP responses and redirects, headers, cookies, the TLS certificate, the HTML of the page, `robots.txt`, the sitemap and `llms.txt`. Results stream in within seconds.
+3. The score is computed on the server. It is deterministic and explainable: every lost point links to a check and its evidence.
+
+A check that cannot run is marked as not checked and says why, and the score is computed from the checks that finished. A site that turns the scanner away (401, 403 or 429) gets no score instead of a graded block page.
+
+## Categories
+
+- **Security:** HTTPS and redirects, certificate, HSTS, CSP, frame and content-type protections, Referrer-Policy, Permissions-Policy, cookie flags, mixed content.
+- **Speed:** time to first byte, compression, browser caching, HTTP version, page weight, render-blocking files, image formats and lazy loading. They are estimated from the HTML and the server's answers, not a real-browser measurement.
+- **SEO:** title, description, headings, canonical, noindex, robots.txt, sitemap, redirects, status codes, Open Graph and social previews, structured data, hreflang.
+- **Agent readiness:** llms.txt, Markdown versions of pages, the rules for AI crawlers in robots.txt, and content that is in the HTML without scripts. Bonus signals (an API catalog, OAuth protected resource metadata, an A2A agent card, agent links in the Link header) add a little when published and never lower the score.
+
+Planned, not available yet: privacy checks (cookie banner, trackers before consent). Also in preparation: accessibility checks in a real browser and scheduled scans with an alert when the score drops.
+
+## Privacy
+
+Scan results are stored for 30 days; cookie values and the full content of scanned pages are not. Report pages are reachable only by their link and are not indexed by search engines. The site sets no cookies and uses no tracking. Details: [Privacy policy](https://sitehp.app/en/privacy), [Cookies](https://sitehp.app/en/cookies).
+
+## Operator
+
+sitehp.app is an independent project built and run by Jan Szotkowski ([https://github.com/janszotkowski](https://github.com/janszotkowski)). X: [https://x.com/janszotkowskix](https://x.com/janszotkowskix).
+
+## Languages
+
+The site is in English and Czech. English pages live under `https://sitehp.app/en/…`, Czech ones under `https://sitehp.app/cs/…` (the same path after the language). Every public page has a Markdown version at the same address with `.md` appended.
+
+## Pages
+
+- [Home](https://sitehp.app/en): the scan form
+- [How scoring works](https://sitehp.app/en/methodology): every check, its weight and how the HP score is calculated
+- [About](https://sitehp.app/en/about)
+- [For website owners](https://sitehp.app/en/website-owners): how the scanner (`sitehp.app-scanner/1.0`) behaves and how to exclude a site
+- [Terms of use](https://sitehp.app/en/terms), [Privacy policy](https://sitehp.app/en/privacy), [Cookies](https://sitehp.app/en/cookies), [Accessibility statement](https://sitehp.app/en/accessibility)
+- [Sitemap](https://sitehp.app/sitemap.xml)
