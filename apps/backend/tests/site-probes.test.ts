@@ -1,6 +1,6 @@
 import { normalizeUrl, type FetchedPage } from '@sitehp.app/core';
 import { describe, expect, it } from 'vitest';
-import { probeSite } from '@modules/scans/application/site-probes.ts';
+import { gatherSite, probeSite } from '@modules/scans/application/site-probes.ts';
 import type { SiteFetcher } from '@modules/scans/ports.ts';
 import { cannedPage } from '@tests/helpers.ts';
 
@@ -202,5 +202,41 @@ describe('probeSite: the well-known files an agent looks for', () => {
         expect(probes.agentFiles['/.well-known/api-catalog']).toMatchObject({ status: 200, contentType: 'application/linkset+json', body: '{"linkset": []}' });
         expect(probes.agentFiles['/.well-known/agent-card.json']).toMatchObject({ status: 404 });
         expect(probes.agentFiles['/.well-known/oauth-protected-resource']).toBeNull();
+    });
+});
+
+describe('gatherSite', () => {
+    const signal = new AbortController().signal;
+
+    it('hands the checks every field, with the page, the plain-http entry point and the certificate of the host the page ended on', async () => {
+        const hosts: string[] = [];
+        const fetcher = tableFetcher({ 'https://example.com/': { finalUrl: 'https://www.example.com/' }, 'http://example.com/': { status: 301, finalUrl: 'https://example.com/' } });
+        const { url, context } = await gatherSite({ ...fetcher, inspectCertificate: (host) => (hosts.push(host), Promise.resolve(null)) }, target('https://example.com'), {
+            httpFallback: false,
+            signal,
+        });
+        expect(url.href).toBe('https://example.com/');
+        expect(context.page?.finalUrl).toBe('https://www.example.com/');
+        expect(context.httpProbe).toEqual({ finalUrl: 'https://example.com/', status: 301 });
+        expect(hosts).toEqual(['www.example.com']);
+        expect(Object.keys(context)).toEqual(expect.arrayContaining(['certificate', 'httpProbe', 'robots', 'sitemap', 'sitemapSample', 'assetSample', 'llms', 'agentFiles', 'markdown', 'notFound']));
+    });
+
+    it('scans over http when an address typed without a scheme does not answer https, and only then', async () => {
+        const fetcher = tableFetcher({ 'http://example.com/': {} });
+        expect((await gatherSite(fetcher, target('https://example.com'), { httpFallback: true, signal })).url.href).toBe('http://example.com/');
+        const strict = await gatherSite(fetcher, target('https://example.com'), { httpFallback: false, signal });
+        expect(strict.url.href).toBe('https://example.com/');
+        expect(strict.fetched).toEqual({ ok: false, reason: 'unreachable' });
+        expect(strict.context.page).toBeUndefined();
+    });
+});
+
+describe('probeSite: robots.txt that is not a file', () => {
+    it('does not take the sitemap address from a home page served for /robots.txt', async () => {
+        const fetcher = tableFetcher({ 'https://example.com/robots.txt': { body: '<!doctype html><p>Sitemap: https://example.com/elsewhere.xml</p>' } });
+        await probeSite(fetcher, target('https://example.com'));
+        expect(fetcher.requested).toContain('https://example.com/sitemap.xml');
+        expect(fetcher.requested).not.toContain('https://example.com/elsewhere.xml');
     });
 });

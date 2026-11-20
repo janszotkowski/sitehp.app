@@ -40,7 +40,7 @@ const database = await connectDatabase(config.DATABASE_URL ?? '').catch((error: 
 const redis = connectRedis(config.REDIS_URL ?? '', logger);
 const blocking = connectRedis(config.REDIS_URL ?? '', logger, { blocking: true });
 const wake = createRedisScanSignal(redis, logger);
-// The worker builds the same service as the API and never serves a request. Its queue never enqueues: the reaper asks it whether a job still exists.
+// The worker builds the same container as the API and never serves a request. Its queue never enqueues: the reaper asks it whether a job still exists.
 const queue = createBullJobQueue(redis);
 const container = buildContainer(config, { logger, database, queue, signal: wake });
 
@@ -58,14 +58,14 @@ logger.info(
     'worker configuration',
 );
 
-const worker = createScanWorker(blocking, (job) => container.scans.run(job), {
+const worker = createScanWorker(blocking, (job) => container.runner.run(job), {
     concurrency: config.SCAN_MAX_CONCURRENT,
     logger,
-    onFailed: (job) => container.scans.failLost(job.publicId),
+    onFailed: (job) => container.runner.failLost(job.publicId),
 });
 
 // A scan whose job was lost is failed instead of left to wait for ever. Other workers may be running scans: only old ones are judged.
-const stopReaper = startReaper(container.scans, logger, stuckAfterMs(config));
+const stopReaper = startReaper(container.runner, logger, stuckAfterMs(config));
 // No HTTP to probe: the container's health check reads the age of this file.
 const stopHeartbeat = startHeartbeat(config.WORKER_HEARTBEAT_FILE, systemClock, logger);
 logger.info({ heartbeatFile: config.WORKER_HEARTBEAT_FILE }, 'worker ready');

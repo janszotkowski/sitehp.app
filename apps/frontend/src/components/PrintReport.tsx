@@ -1,13 +1,13 @@
 import { Printer } from 'lucide-react';
-import { SCORE_MODEL_VERSION, domainToUnicode, scoreBand, scoreBreakdown, type ScanSnapshot, catalogFor } from '@sitehp.app/core/browser';
+import { SCORE_MODEL_VERSION, domainToUnicode, scoreBand, type ScanSnapshot } from '@sitehp.app/core/browser';
 import { Link } from '@tanstack/react-router';
 import { Button, buttonVariants } from '@components/ui/button';
 import { checkText } from '@lib/checkMessages';
 import type { Locale } from '@lib/i18n/switchLocalePath';
-import { effortLabel, isAttention, reportRows, severityLabel, skippedReasonLabel, STATUS_RANK, type ReportRow } from '@lib/reportModel';
+import { effortLabel, gainText, severityLabel, skippedReasonLabel, type ReportRow } from '@lib/reportModel';
 import { bandTitle, categoryTitle, groupTitle } from '@lib/reportTitles';
 import { utcStamp } from '@lib/reportPrint';
-import { olderScoreModel } from '@lib/scanSnapshot';
+import { reportView } from '@lib/reportView';
 import { statusLabel } from '@lib/statusLabel';
 import { m } from '@paraglide/messages.js';
 
@@ -20,12 +20,8 @@ type PrintReportProps = { snapshot: ScanSnapshot; locale: Locale };
 export const PrintReport = (props: PrintReportProps) => {
     const { snapshot, locale } = props;
     const domain = domainToUnicode(snapshot.domain);
-    const rows = reportRows(snapshot.checks, snapshot.status !== 'running', catalogFor(snapshot.selectedChecks));
-    const todo = rows.filter(isAttention).sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || b.gain - a.gain);
-    const passed = rows.filter((row) => row.status === 'pass');
-    const unmeasured = rows.filter((row) => row.status === 'skipped' || row.status === 'running');
-    // As in the report: a report scored with an earlier model keeps its HP, but today's weights would not add its categories up to it.
-    const breakdown = olderScoreModel(snapshot) === undefined ? scoreBreakdown(snapshot.checks) : null;
+    const { sections, breakdown } = reportView(snapshot);
+    const { todo, passed, unmeasured } = sections;
     const band = snapshot.score === null ? m.report_print_no_score({}, { locale }) : m.report_print_out_of({ band: bandTitle(scoreBand(snapshot.score), locale) }, { locale });
 
     const finding = (row: ReportRow) => {
@@ -50,7 +46,7 @@ export const PrintReport = (props: PrintReportProps) => {
                     <p className={'text-caption mt-1 text-neutral-700'}>{text.explanation}</p>
                 </div>
                 <div className={'flex flex-col items-end gap-0.5 text-right'}>
-                    <span className={'text-headline font-semibold tabular-nums'}>{row.gain > 0 ? m.report_gain({ gain: row.gain }, { locale }) : '—'}</span>
+                    <span className={'text-headline font-semibold tabular-nums'}>{gainText(row.gain, locale)}</span>
                     <span className={'text-caption text-neutral-500'}>{statusLabel(row.status, locale)}</span>
                 </div>
             </li>

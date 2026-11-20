@@ -1,41 +1,12 @@
-import { randomUUID } from 'node:crypto';
-import {
-    checksFor,
-    normalizeSelection,
-    SCORE_MODEL_VERSION,
-    computeScore,
-    detectTechnologies,
-    emptySnapshot,
-    hideQueryValues,
-    normalizeUrl,
-    reduceScan,
-    runCheck,
-    scoreBreakdown,
-    type CheckResult,
-    type ScanEvent,
-    type ScanFailureReason,
-    type ScanSnapshot,
-    type UrlRejection,
-} from '@sitehp.app/core';
+import { checksFor, normalizeSelection, emptySnapshot, hideQueryValues, normalizeUrl, type ScanEvent, type ScanSnapshot, type UrlRejection } from '@sitehp.app/core';
 import { AppError } from '@platform/errors.ts';
 import { urlForLog, type Logger } from '@platform/logger.ts';
 import type { Clock, IdGenerator } from '@platform/ports.ts';
 import type { RateLimiter } from '@platform/rate-limit.ts';
-import { IPV6_NETWORK_FACTOR, callerNetworkKey } from '@platform/net/ip.ts';
+import { callerLimits } from '@platform/net/ip.ts';
 import { registrableDomain } from '@platform/net/registrable-domain.ts';
-import { probeSite } from '@modules/scans/application/site-probes.ts';
-import {
-    RunTakenOverError,
-    ScanFinishedError,
-    type JobQueue,
-    type ScanEventDraft,
-    type ScanJob,
-    type ScanStore,
-    type SiteFetchResult,
-    type SiteFetcher,
-    type SiteLog,
-    type SiteRequestOutcome,
-} from '@modules/scans/ports.ts';
+import { publisherOf, shown } from '@modules/scans/application/publish.ts';
+import type { JobQueue, ScanStore, SiteLog, SiteRequestOutcome } from '@modules/scans/ports.ts';
 
 export type ScansDeps = {
     store: ScanStore;
@@ -44,7 +15,6 @@ export type ScansDeps = {
     /** The block-list rule a host falls under (`*.ru`, `evil.example`), or undefined when it may be scanned. */
     blockedBy: (host: string) => string | undefined;
     queue: JobQueue;
-    fetcher: SiteFetcher;
     ids: IdGenerator;
     clock: Clock;
     logger: Logger;
@@ -54,10 +24,6 @@ export type ScansDeps = {
     limits: { perIp: number; perDomain: number; windowMs: number };
     /** A scan of the same address started this recently is handed out again (`SCAN_REUSE_MS`); 0 turns it off. */
     reuseMs?: number;
-    /** Pause before each check, so a person can watch a scan fill in. 0 in production. */
-    stepDelayMs: number;
-    /** The whole run of one scan (`SCAN_DEADLINE_MS`): past it the scan is stopped and failed as `timeout`. */
-    deadlineMs?: number;
 };
 
 const REJECTION_MESSAGE: Record<UrlRejection, string> = {
@@ -70,9 +36,6 @@ const REJECTION_MESSAGE: Record<UrlRejection, string> = {
     HOST_NOT_ALLOWED: 'This address cannot be scanned. Use a public domain name.',
 };
 
-const MAX_RAW_HEADERS = 60;
-const MAX_RAW_HEADER_LENGTH = 1000;
-
 /** Recent scans one caller may be handed per window, as a multiple of the scans it may start: a reuse fetches nothing, but it is still a database read. */
 const REUSE_FACTOR = 10;
 
@@ -82,36 +45,16 @@ const IDEMPOTENCY_MS = 10 * 60_000;
 /** `Idempotency-Key`s remembered at most; past it the oldest is forgotten, so new keys cannot fill the memory. */
 const IDEMPOTENCY_MAX_KEYS = 10_000;
 
-const DEFAULT_DEADLINE_MS = 120_000;
-
-/** A snapshot as a client gets it: without the run bookkeeping of the store (`runId`), so it equals the state folded from the stream. */
-const shown = (snapshot: ScanSnapshot): ScanSnapshot => {
-    const copy = { ...snapshot };
-    delete copy.runId;
-    return copy;
-};
-
-const pause = (ms: number): Promise<void> => (ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve());
-
 /**
- * The use-cases of a scan. Everything it touches is a port, so these run in
- * tests against in-memory adapters, and the same code runs against Postgres,
- * Redis and a queue later.
+ * Starting a scan and reading it: validation, the block list, the rate limits, reuse of a recent report and idempotency, then the job
+ * on the queue. Running it is `createScanRunner`. Everything it touches is a port, so it runs in tests against in-memory adapters.
  */
 export const createScansService = (deps: ScansDeps) => {
     const { store, queue, ids, clock, blockedBy } = deps;
     /** Requests with an `Idempotency-Key`, oldest first: what `createOnce` answers a repeat with. */
     const recentRequests = new Map<string, { at: number; scan: Promise<ScanSnapshot> }>();
 
-    /**
-     * The single path of every state change: the store appends the event (and the one `derive` adds) and folds it into the snapshot in one step.
-     * `runId` ties the event to a worker run, so a run that was taken over cannot add to the scan (`foldForRun`).
-     */
-    const publish = (publicId: string, draft: ScanEventDraft, derive?: (snapshot: ScanSnapshot) => ScanEventDraft | undefined, runId?: string): Promise<ScanSnapshot> =>
-        store.publish(publicId, draft, reduceScan, derive, runId).then(({ event, followUp, snapshot }) => {
-            for (const published of followUp === undefined ? [event] : [event, followUp]) deps.logger.trace({ publicId, eventId: published.id, type: published.type }, 'event published');
-            return snapshot;
-        });
+    const publish = publisherOf(store, deps.logger);
 
     const now = () => clock.now().toISOString();
 
@@ -121,12 +64,6 @@ export const createScansService = (deps: ScansDeps) => {
     /** The list of domains is for the owner's overview: a failure to write to it is logged and never stops a scan. */
     const remember = (domain: string, outcome: SiteRequestOutcome): Promise<void> =>
         deps.siteLog.recordRequest(domain, clock.now(), outcome).catch((error: unknown) => deps.logger.warn({ err: error, domain }, 'recording a requested domain failed'));
-
-    /** The limiter buckets of one caller under `prefix`: its address, and for IPv6 its /48 with a looser limit. */
-    const callerLimitsOf = (client: string, prefix: string, perIp: number) => {
-        const network = callerNetworkKey(client);
-        return [{ key: `${prefix}:${client}`, limit: perIp }, ...(network === undefined ? [] : [{ key: `${prefix}:${network}`, limit: perIp * IPV6_NETWORK_FACTOR }])];
-    };
 
     /**
      * One scan per call makes the scanner fetch a stranger's site, so the caller's address and the domain are both limited.
@@ -138,14 +75,14 @@ export const createScansService = (deps: ScansDeps) => {
      */
     const enforceLimits = async (client: string, target: { domain: string; url: string | undefined } | undefined): Promise<ScanSnapshot | undefined> => {
         const { perIp, perDomain, windowMs } = deps.limits;
-        const callerLimits = callerLimitsOf(client, 'ip', perIp);
+        const callerBuckets = callerLimits(client, perIp, 'ip');
         const domainKey = target === undefined ? undefined : `domain:${target.domain}`;
-        let decision = await deps.limiter.hit([...callerLimits, ...(domainKey === undefined ? [] : [{ key: domainKey, limit: perDomain }])], windowMs);
+        let decision = await deps.limiter.hit([...callerBuckets, ...(domainKey === undefined ? [] : [{ key: domainKey, limit: perDomain }])], windowMs);
         if (decision.allowed) return undefined;
         if (decision.key === domainKey && target?.url !== undefined) {
             const recent = await store.findRecent(target.url, new Date(clock.now().getTime() - windowMs));
             if (recent !== undefined) {
-                decision = await deps.limiter.hit(callerLimits, windowMs);
+                decision = await deps.limiter.hit(callerBuckets, windowMs);
                 if (decision.allowed) {
                     deps.logger.info({ publicId: recent.publicId, domain: target.domain, ...clientField(client) }, 'recent scan reused');
                     return shown(recent);
@@ -201,7 +138,7 @@ export const createScansService = (deps: ScansDeps) => {
         if (!fresh && !customized && reuseMs > 0 && reusableUrl !== undefined) {
             // Free of the scan limit, but not unlimited: a bucket of its own, far looser, so a loop of requests cannot hammer the database.
             if (client !== undefined) {
-                const decision = await deps.limiter.hit(callerLimitsOf(client, 'reuse', deps.limits.perIp * REUSE_FACTOR), deps.limits.windowMs);
+                const decision = await deps.limiter.hit(callerLimits(client, deps.limits.perIp * REUSE_FACTOR, 'reuse'), deps.limits.windowMs);
                 if (!decision.allowed) {
                     deps.logger.warn({ reason: 'rate_limited', limit: 'reuse', domain, retryAfterSec: decision.retryAfterSec, ...clientField(client) }, 'scan refused');
                     throw new AppError('RATE_LIMITED', 'Too many scans from your address. Try again later.', undefined, decision.retryAfterSec);
@@ -294,251 +231,7 @@ export const createScansService = (deps: ScansDeps) => {
     /** The caller has already looked the scan up (`get`): an unknown id is its 404. A scan deleted meanwhile gives an empty stream. */
     const follow = (publicId: string, lastEventId: string | undefined, signal: AbortSignal): AsyncIterable<ScanEvent> => store.follow(publicId, lastEventId, signal);
 
-    /** How a finished scan turned out, for the log: counts by status and the ids that need a look. */
-    const outcomeOf = (checks: readonly CheckResult[]) => {
-        const by = (status: CheckResult['status']) => checks.filter((check) => check.status === status).map((check) => check.checkId);
-        const failed = by('fail');
-        const warned = by('warn');
-        return {
-            checks: { pass: by('pass').length, warn: warned.length, fail: failed.length, skipped: by('skipped').length },
-            failed,
-            warned,
-            skipped: checks.filter((check) => check.status === 'skipped').map((check) => `${check.checkId}:${check.skippedReason ?? '?'}`),
-        };
-    };
-
-    /**
-     * Ends a scan as failed. A scan that has already ended refuses it, which is fine. Any other failure to write it is logged and thrown:
-     * the job then fails, and the reaper ends the scan once its job is gone, instead of the scan staying `running` unnoticed.
-     */
-    const endFailed = (publicId: string, reason: ScanFailureReason, log: Logger, runId?: string): Promise<void> =>
-        publish(publicId, { type: 'scan.failed', ts: now(), data: { reason } }, undefined, runId).then(
-            () => undefined,
-            (error: unknown) => {
-                if (error instanceof ScanFinishedError) return;
-                log.error({ err: error, reason }, 'ending the scan as failed did not work');
-                throw error;
-            },
-        );
-
-    /**
-     * The certificate a visitor is shown: of the host the page ended on when it is served over https (on the usual port), else of the
-     * host as typed. The page was fetched there through the safe fetcher, and the certificate is read through the same guarded lookup.
-     */
-    const certificateHostOf = (fetched: SiteFetchResult, typedHost: string): string => {
-        if (!fetched.ok) return typedHost;
-        const final = new URL(fetched.page.finalUrl);
-        return final.protocol === 'https:' && final.port === '' ? final.hostname : typedHost;
-    };
-
-    /**
-     * The worker side: fetches the page once, runs every check, publishing an event after each, and ends with `scan.completed` (or `scan.failed` with the reason).
-     * The whole run has a deadline: past it the fetches still going are aborted, the scan is failed as `timeout` and the job ends, so a site
-     * that answers slowly on every probe, or a database that stops answering, cannot hold a worker slot and a report for ever.
-     */
-    const run = async (job: ScanJob): Promise<void> => {
-        const startedAt = performance.now();
-        const elapsed = () => Math.round(performance.now() - startedAt);
-        const log = deps.logger.child({ publicId: job.publicId });
-        const deadlineMs = deps.deadlineMs ?? DEFAULT_DEADLINE_MS;
-        const controller = new AbortController();
-        // This run's own id: if a stall hands the job to another worker, the store refuses whatever this run still publishes.
-        const runId = randomUUID();
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        const expired = new Promise<'expired'>((resolve) => {
-            timer = setTimeout(() => resolve('expired'), deadlineMs);
-        });
-        try {
-            if ((await Promise.race([runUntil(job, runId, controller.signal, log, elapsed), expired])) !== 'expired') return;
-        } finally {
-            clearTimeout(timer);
-        }
-        // The run goes on in the background until it notices: its fetches are aborted, and its next event is refused once the scan has ended.
-        controller.abort();
-        log.warn({ durationMs: elapsed(), deadlineMs }, 'scan over its deadline, stopped');
-        await endFailed(job.publicId, 'timeout', log, runId);
-    };
-
-    const runUntil = async ({ publicId, url: typedUrl, httpFallback }: ScanJob, runId: string, signal: AbortSignal, log: Logger, elapsed: () => number): Promise<void> => {
-        const publishAsRun = (draft: ScanEventDraft, derive?: (snapshot: ScanSnapshot) => ScanEventDraft | undefined) => publish(publicId, draft, derive, runId);
-        try {
-            let snapshot = await get(publicId);
-            // A job that comes back for a scan that already ended (it was queued twice, or its worker died after the last event) has nothing to do.
-            if (snapshot.status !== 'running') {
-                log.info({ status: snapshot.status }, 'scan already finished, job skipped');
-                return;
-            }
-            // More than `scan.started` in the log: an earlier worker died part-way. A scan created by another version (a deploy between
-            // the API queueing it and this worker running it) has another set of checks. Either way the run starts over with a new
-            // `scan.started`, which clears the earlier results and sets the number of checks this version runs.
-            const selected = checksFor(snapshot.selectedChecks);
-            const resumed = Number(snapshot.lastEventId ?? 0) > 1;
-            if (resumed) log.warn({ lastEventId: snapshot.lastEventId }, 'scan resumed after a lost worker');
-            if (resumed || snapshot.totalChecks !== selected.length) {
-                if (!resumed) log.info({ queuedWith: snapshot.totalChecks, runsWith: selected.length }, 'scan queued by another version, checks recounted');
-                snapshot = await publishAsRun({ type: 'scan.started', ts: now(), data: { url: snapshot.url, domain: snapshot.domain, totalChecks: selected.length, runId } });
-            }
-            const typed = normalizeUrl(typedUrl ?? snapshot.url);
-            if (!typed.ok) throw new Error('a stored scan has an invalid URL');
-            const domain = snapshot.domain;
-            log.info({ domain, queueWaitMs: Math.max(0, clock.now().getTime() - Date.parse(snapshot.createdAt)) }, 'scan started');
-
-            // The contact with the scanned site: the page and the plain-http entry point in parallel; once the page is in, the certificate and
-            // the small files around it (robots.txt, the sitemap, a missing page, the other host name), on the site the page ended on. All go through the safe fetcher.
-            // An address typed without a scheme was tried as https; a site that does not answer https at all (no connection, a failed handshake)
-            // gets one try over http, and is scanned there when that answers.
-            const pageFetch = deps.fetcher.fetchPage(typed.url.href, { signal }).then(async (result) => {
-                if (result.ok || httpFallback !== true || typed.url.scheme !== 'https' || (result.reason !== 'unreachable' && result.reason !== 'tls_error')) return { result, url: typed.url };
-                const plain = normalizeUrl(typed.url.href.replace(/^https:/, 'http:'));
-                const retried = plain.ok ? await deps.fetcher.fetchPage(plain.url.href, { signal }) : result;
-                return retried.ok && plain.ok ? { result: retried, url: plain.url } : { result, url: typed.url };
-            });
-            const [{ result: fetched, url }, probe, certificate, siteProbes] = await Promise.all([
-                pageFetch,
-                deps.fetcher.fetchPage(`http://${typed.url.host}/`, { signal }),
-                pageFetch.then(({ result }) => deps.fetcher.inspectCertificate(certificateHostOf(result, typed.url.host))),
-                pageFetch.then(({ result, url: site }) => probeSite(deps.fetcher, site, { ...(result.ok ? { finalUrl: result.page.finalUrl, page: result.page } : {}), signal })),
-            ]);
-            if (signal.aborted) return;
-            // Scanned over http after all: the report names the address that was scanned (the stored `url` column stays the one asked for).
-            if (url.scheme !== typed.url.scheme) {
-                log.info({ domain, from: typed.url.scheme, to: url.scheme }, 'https did not answer, scanned over http');
-                snapshot = await publishAsRun({ type: 'scan.started', ts: now(), data: { url: hideQueryValues(url.href), domain, totalChecks: selected.length, runId } });
-            }
-            const status = (file: { status: number } | null | undefined): number | null => file?.status ?? null;
-            log.info(
-                {
-                    domain,
-                    durationMs: elapsed(),
-                    page: fetched.ok
-                        ? {
-                              status: fetched.page.status,
-                              finalHost: urlForLog(fetched.page.finalUrl).host,
-                              redirects: fetched.page.redirects.length,
-                              bytes: fetched.page.bytes,
-                              truncated: fetched.page.truncated,
-                              contentType: fetched.page.contentType,
-                              ttfbMs: fetched.page.ttfbMs,
-                              totalMs: fetched.page.totalMs,
-                          }
-                        : { failure: fetched.reason },
-                    httpEntry: probe.ok ? { status: probe.page.status, finalScheme: probe.page.finalUrl.startsWith('https:') ? 'https' : 'http' } : { failure: probe.reason },
-                    certificate: certificate === null ? null : { authorized: certificate.authorized, error: certificate.error, daysLeft: certificate.daysLeft },
-                    files: {
-                        robots: status(siteProbes.robots),
-                        sitemap: status(siteProbes.sitemap),
-                        sitemapSampled: siteProbes.sitemapSample.length,
-                        assetsSampled: siteProbes.assetSample.length,
-                        llms: status(siteProbes.llms),
-                        agentFiles: Object.values(siteProbes.agentFiles).filter((file) => file !== null).length,
-                        markdown: siteProbes.markdown === null ? null : { status: siteProbes.markdown.status, contentType: siteProbes.markdown.contentType },
-                        notFound: status(siteProbes.notFound),
-                        otherHost: siteProbes.hostVariant === undefined ? 'none' : status(siteProbes.hostVariant),
-                    },
-                },
-                'site contacted',
-            );
-            // A bad certificate is a finding, not the end: the scan goes on without a page, and the checks that need one are reported as not checked.
-            // Any other failure to reach the site ends the scan with the reason.
-            if (!fetched.ok && fetched.reason !== 'tls_error') {
-                await publishAsRun({ type: 'scan.failed', ts: now(), data: { reason: fetched.reason } });
-                log.warn({ domain, reason: fetched.reason, durationMs: elapsed() }, 'scan failed');
-                return;
-            }
-            const page = fetched.ok ? fetched.page : undefined;
-            const httpProbe = probe.ok ? { finalUrl: probe.page.finalUrl, status: probe.page.status } : null;
-
-            // For the raw view only. `set-cookie` never leaves the fetch (cookies are judged, not kept), and the size is capped.
-            const headers = Object.fromEntries(
-                Object.entries(page?.headers ?? {})
-                    .filter(([name]) => name !== 'set-cookie')
-                    .slice(0, MAX_RAW_HEADERS)
-                    .map(([name, value]) => [name, value.slice(0, MAX_RAW_HEADER_LENGTH)]),
-            );
-            let current = page === undefined ? snapshot : await publishAsRun({ type: 'page.fetched', ts: now(), data: { headers, technologies: detectTechnologies(page) } });
-            for (const check of selected) {
-                await pause(deps.stepDelayMs);
-                if (signal.aborted) return;
-                const checkStartedAt = performance.now();
-                const result = await runCheck(check, { url, ...(page === undefined ? {} : { page }), certificate, httpProbe, ...siteProbes });
-                log.debug(
-                    {
-                        checkId: result.checkId,
-                        category: result.category,
-                        status: result.status,
-                        severity: result.severity,
-                        pointsLost: result.pointsLost,
-                        ...(result.skippedReason === undefined ? {} : { skippedReason: result.skippedReason }),
-                        durationMs: Math.round(performance.now() - checkStartedAt),
-                    },
-                    'check completed',
-                );
-                current = await publishAsRun({ type: 'check.completed', ts: now(), data: result }, (checked) => {
-                    const score = computeScore(checked.checks);
-                    return score === null ? undefined : { type: 'score.updated', ts: now(), data: { score, preliminary: true } };
-                });
-            }
-
-            const breakdown = scoreBreakdown(current.checks);
-            const score = breakdown?.score ?? null;
-            await publishAsRun({ type: 'scan.completed', ts: now(), data: { score, scoreModelVersion: SCORE_MODEL_VERSION } });
-            log.info(
-                {
-                    domain,
-                    score,
-                    scoreCapped: breakdown?.capped ?? false,
-                    categories: Object.fromEntries((breakdown?.categories ?? []).map((category) => [category.category, category.score])),
-                    ...outcomeOf(current.checks),
-                    durationMs: elapsed(),
-                },
-                'scan completed',
-            );
-            // A choice of checks is not how the site did: its score must not replace the last full one.
-            if (current.selectedChecks === undefined) {
-                await deps.siteLog
-                    .recordResult(registrableDomain(domain), score, new Date(current.createdAt))
-                    .catch((error: unknown) => deps.logger.warn({ err: error, domain }, 'recording a result failed'));
-            }
-        } catch (error) {
-            // Ended elsewhere while this ran (the reaper failed it, another worker finished it): stop, the scan already has its end.
-            // Taken over by another run (this one stalled and BullMQ handed the job on): that run owns the scan now.
-            if (error instanceof ScanFinishedError) {
-                log.warn({ durationMs: elapsed() }, error instanceof RunTakenOverError ? 'scan taken over by another run, run stopped' : 'scan ended elsewhere, run stopped');
-                return;
-            }
-            // Out of time: the deadline has already ended the scan.
-            if (signal.aborted) return;
-            // One failing scan reports itself and never takes the process down. The visitor sees `internal_error`; the log keeps the cause.
-            log.error({ err: error, durationMs: elapsed() }, 'scan job failed');
-            await endFailed(publicId, 'internal_error', log, runId);
-        }
-    };
-
-    /**
-     * Fails the scans that are `running` with no event for `maxAgeMs` and whose job is gone (Redis lost it, a worker was killed for good, the
-     * job ran out of attempts): a report must not wait for ever. A scan still waiting in a long queue or still running is left alone, and so
-     * is one the queue cannot answer for (Redis away is not a lost job). A scan that finishes meanwhile is refused by the store.
-     */
-    const reapStuck = async (maxAgeMs: number): Promise<number> => {
-        const stuck = await store.listRunningIdleSince(new Date(clock.now().getTime() - maxAgeMs));
-        let failed = 0;
-        for (const publicId of stuck) {
-            try {
-                if (await queue.isPending(publicId)) continue;
-                await publish(publicId, { type: 'scan.failed', ts: now(), data: { reason: 'internal_error' } });
-                failed += 1;
-                deps.logger.warn({ publicId, maxAgeMs }, 'stuck scan failed, its job was lost');
-            } catch (error) {
-                deps.logger.debug({ err: error, publicId }, 'stuck scan left alone');
-            }
-        }
-        return failed;
-    };
-
-    /** The queue gave up on a scan's job (it stalled too often, or the run threw): the scan ends now instead of waiting for the reaper. */
-    const failLost = (publicId: string): Promise<void> => endFailed(publicId, 'internal_error', deps.logger.child({ publicId }));
-
-    return { create: createOnce, get, follow, run, reapStuck, failLost };
+    return { create: createOnce, get, follow };
 };
 
 export type ScansService = ReturnType<typeof createScansService>;

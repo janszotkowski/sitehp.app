@@ -1,25 +1,59 @@
 import { createRateLimiter } from '@platform/rate-limit.ts';
 import { getEventListeners } from 'node:events';
-import {
-    CHECK_IDS,
-    CRITICAL_CAP,
-    SCORE_MODEL_VERSION,
-    createScanResponseSchema,
-    hideQueryValues,
-    emptySnapshot,
-    errorResponseSchema,
-    reduceScan,
-    scanEventSchema,
-    scanSnapshotSchema,
-} from '@sitehp.app/core';
+import { CHECK_IDS, CRITICAL_CAP, SCORE_MODEL_VERSION, createScanResponseSchema, hideQueryValues, emptySnapshot, errorResponseSchema, scanEventSchema, scanSnapshotSchema } from '@sitehp.app/core';
 import { createApp } from '@composition/app.ts';
-import { createScansService, type ScansService } from '@modules/scans/application/scans-service.ts';
+import { createScanRunner } from '@modules/scans/application/scan-runner.ts';
+import { createScansService, type ScansDeps, type ScansService } from '@modules/scans/application/scans-service.ts';
 import { createInlineJobQueue, createInMemoryScanStore, createInMemorySiteLog } from '@modules/scans/infrastructure/in-memory.ts';
 import { AppError } from '@platform/errors.ts';
 import type { Logger } from '@platform/logger.ts';
-import type { ScanStore, SiteFetcher } from '@modules/scans/ports.ts';
+import type { ScanStore, SiteFetcher, SiteLog } from '@modules/scans/ports.ts';
 import { describe, expect, it } from 'vitest';
 import { FIXED_TIME, cannedPage, captureLogs, fakeFetcher, goodCertificate, parseSse, sequentialIds, testConfig, testContainer } from '@tests/helpers.ts';
+
+type InlineScansOptions = {
+    fetcher?: SiteFetcher;
+    logger?: Logger;
+    store?: ScanStore;
+    siteLog?: SiteLog;
+    deadlineMs?: number;
+} & Partial<Pick<ScansDeps, 'limiter' | 'limits' | 'reuseMs'>>;
+
+/** The start module and the runner over one store, the runner taking the jobs inline: what the container wires, with only what a test changes. */
+const inlineScans = (options: InlineScansOptions = {}) => {
+    const store = options.store ?? createInMemoryScanStore();
+    const siteLog = options.siteLog ?? createInMemorySiteLog();
+    const logger = options.logger ?? captureLogs().logger;
+    const clock = { now: () => FIXED_TIME };
+    const queue = createInlineJobQueue(
+        (job) => runner.run(job),
+        () => undefined,
+    );
+    const runner = createScanRunner({
+        store,
+        siteLog,
+        fetcher: options.fetcher ?? fakeFetcher(),
+        isPending: (publicId) => queue.isPending(publicId),
+        clock,
+        logger,
+        stepDelayMs: 0,
+        ...(options.deadlineMs === undefined ? {} : { deadlineMs: options.deadlineMs }),
+    });
+    const scans = createScansService({
+        store,
+        siteLog,
+        blockedBy: () => undefined,
+        queue,
+        ids: sequentialIds(),
+        clock,
+        logger,
+        logClient: false,
+        limiter: options.limiter ?? { hit: () => Promise.resolve({ allowed: true }) },
+        limits: options.limits ?? { perIp: 1, perDomain: 1, windowMs: 1000 },
+        ...(options.reuseMs === undefined ? {} : { reuseMs: options.reuseMs }),
+    });
+    return { scans, runner, siteLog };
+};
 
 /** Id of the last event of a finished scan: started, fetched, a check and a score per check, completed. */
 const LAST = 3 + 2 * CHECK_IDS.length;
@@ -161,25 +195,10 @@ describe('scans service', () => {
 
     it('logs the cause of a scan that fails inside the job, and reports internal_error', async () => {
         const captured = captureLogs();
-        const holder: { service: ScansService | undefined } = { service: undefined };
-        const scans = createScansService({
-            store: createInMemoryScanStore(),
-            siteLog: createInMemorySiteLog(),
-            blockedBy: () => undefined,
-            queue: createInlineJobQueue(
-                (job) => holder.service?.run(job) ?? Promise.resolve(),
-                () => undefined,
-            ),
+        const { scans } = inlineScans({
             fetcher: { fetchPage: () => Promise.reject(new Error('fetcher exploded')), inspectCertificate: () => Promise.resolve(null), close: () => Promise.resolve() },
-            ids: sequentialIds(),
-            clock: { now: () => FIXED_TIME },
             logger: captured.logger,
-            logClient: false,
-            limiter: { hit: () => Promise.resolve({ allowed: true }) },
-            limits: { perIp: 1, perDomain: 1, windowMs: 1000 },
-            stepDelayMs: 0,
         });
-        holder.service = scans;
 
         const { publicId } = await scans.create('example.com');
         const done = await settled(scans, publicId);
@@ -200,29 +219,7 @@ describe('scans service', () => {
     });
 
     /** A service whose scans run inline, with the given fetcher, store and deadline. */
-    const inlineService = (fetcher: SiteFetcher, logger: Logger, overrides: { store?: ScanStore; deadlineMs?: number } = {}) => {
-        const holder: { service: ScansService | undefined } = { service: undefined };
-        const scans = createScansService({
-            store: overrides.store ?? createInMemoryScanStore(),
-            siteLog: createInMemorySiteLog(),
-            blockedBy: () => undefined,
-            queue: createInlineJobQueue(
-                (job) => holder.service?.run(job) ?? Promise.resolve(),
-                () => undefined,
-            ),
-            fetcher,
-            ids: sequentialIds(),
-            clock: { now: () => FIXED_TIME },
-            logger,
-            logClient: false,
-            limiter: { hit: () => Promise.resolve({ allowed: true }) },
-            limits: { perIp: 1, perDomain: 1, windowMs: 1000 },
-            stepDelayMs: 0,
-            ...(overrides.deadlineMs === undefined ? {} : { deadlineMs: overrides.deadlineMs }),
-        });
-        holder.service = scans;
-        return scans;
-    };
+    const inlineService = (fetcher: SiteFetcher, logger: Logger, overrides: { store?: ScanStore; deadlineMs?: number } = {}) => inlineScans({ fetcher, logger, ...overrides });
 
     it('stops a scan past its deadline, aborts its fetches and fails it as timeout', async () => {
         const signals: AbortSignal[] = [];
@@ -237,7 +234,7 @@ describe('scans service', () => {
             close: () => Promise.resolve(),
         };
         const captured = captureLogs();
-        const scans = inlineService(fetcher, captured.logger, { deadlineMs: 30 });
+        const { scans } = inlineService(fetcher, captured.logger, { deadlineMs: 30 });
         const { publicId } = await scans.create('example.com');
         const done = await settled(scans, publicId);
         expect(done).toMatchObject({ status: 'failed', failureReason: 'timeout' });
@@ -250,13 +247,13 @@ describe('scans service', () => {
         const store = createInMemoryScanStore();
         const broken: ScanStore = {
             ...store,
-            publish: (publicId, draft, fold, derive) => (draft.type === 'scan.failed' ? Promise.reject(new Error('database away')) : store.publish(publicId, draft, fold, derive)),
+            publish: (publicId, draft, derive, runId) => (draft.type === 'scan.failed' ? Promise.reject(new Error('database away')) : store.publish(publicId, draft, derive, runId)),
         };
         const captured = captureLogs();
         const fetcher: SiteFetcher = { fetchPage: () => Promise.reject(new Error('fetcher exploded')), inspectCertificate: () => Promise.resolve(null), close: () => Promise.resolve() };
-        const scans = inlineService(fetcher, captured.logger, { store: broken });
+        const { scans, runner } = inlineService(fetcher, captured.logger, { store: broken });
         const { publicId } = await scans.create('example.com');
-        await expect(scans.run({ publicId, url: 'https://example.com/' })).rejects.toThrow('database away');
+        await expect(runner.run({ publicId, url: 'https://example.com/' })).rejects.toThrow('database away');
         expect(captured.lines().some((line) => line['level'] === 'error' && line['msg'] === 'ending the scan as failed did not work')).toBe(true);
     });
 
@@ -430,29 +427,7 @@ describe('scans HTTP routes', () => {
 });
 
 describe('scans service: what is kept of the address', () => {
-    const service = (fetcher = fakeFetcher()) => {
-        const siteLog = createInMemorySiteLog();
-        const holder: { service: ScansService | undefined } = { service: undefined };
-        const scans = createScansService({
-            store: createInMemoryScanStore(),
-            siteLog,
-            blockedBy: () => undefined,
-            queue: createInlineJobQueue(
-                (job) => holder.service?.run(job) ?? Promise.resolve(),
-                () => undefined,
-            ),
-            fetcher,
-            ids: sequentialIds(),
-            clock: { now: () => FIXED_TIME },
-            logger: captureLogs().logger,
-            logClient: false,
-            limiter: { hit: async () => ({ allowed: true }) },
-            limits: { perIp: 1, perDomain: 1, windowMs: 1000 },
-            stepDelayMs: 0,
-        });
-        holder.service = scans;
-        return { scans, siteLog };
-    };
+    const service = (fetcher = fakeFetcher()) => inlineScans({ fetcher });
 
     it('stores the query keys without their values, and still fetches the address as typed', async () => {
         const fetcher = fakeFetcher();
@@ -472,27 +447,11 @@ describe('scans service: what is kept of the address', () => {
     });
 
     it('counts every request for a domain, scans only when a scan starts, and the rate limit as a request too', async () => {
-        const siteLog = createInMemorySiteLog();
-        const holder: { service: ScansService | undefined } = { service: undefined };
-        const scans = createScansService({
-            store: createInMemoryScanStore(),
-            siteLog,
-            blockedBy: () => undefined,
-            queue: createInlineJobQueue(
-                (job) => holder.service?.run(job) ?? Promise.resolve(),
-                () => undefined,
-            ),
-            fetcher: fakeFetcher(),
-            ids: sequentialIds(),
-            clock: { now: () => FIXED_TIME },
-            logger: captureLogs().logger,
-            logClient: false,
+        const { scans, siteLog } = inlineScans({
             limiter: createRateLimiter({ now: () => FIXED_TIME }),
             limits: { perIp: 2, perDomain: 100, windowMs: 60_000 },
             reuseMs: 600_000,
-            stepDelayMs: 0,
         });
-        holder.service = scans;
         await scans.create('counted.example', '203.0.113.9');
         // Handed the same recent scan: a request, not a scan, and no limit spent.
         await scans.create('counted.example', '203.0.113.10');
@@ -604,41 +563,12 @@ describe('scans service: fetching the scanned site', () => {
     });
 });
 
-describe('in-memory scan store', () => {
-    const base = () => emptySnapshot({ publicId: 'x'.repeat(22), url: 'https://example.com/', domain: 'example.com', createdAt: FIXED_TIME.toISOString(), totalChecks: 3 });
-    const started = { type: 'scan.started', ts: FIXED_TIME.toISOString(), data: { url: 'https://example.com/', domain: 'example.com', totalChecks: 3 } } as const;
-
-    it('appends the event and folds it into the snapshot in one step', async () => {
-        const store = createInMemoryScanStore();
-        await store.create(base());
-        const { event, snapshot } = await store.publish('x'.repeat(22), started, reduceScan);
-        expect(event.id).toBe('1');
-        expect(snapshot.lastEventId).toBe('1');
-        expect(await store.get('x'.repeat(22))).toEqual(snapshot);
-    });
-
-    it('changes neither the log nor the snapshot when folding fails', async () => {
-        const store = createInMemoryScanStore();
-        await store.create(base());
-        await expect(
-            store.publish('x'.repeat(22), started, () => {
-                throw new Error('fold failed');
-            }),
-        ).rejects.toThrow('fold failed');
-
-        expect(await store.get('x'.repeat(22))).toEqual(base());
-        // The next event still gets id 1: nothing was appended.
-        expect((await store.publish('x'.repeat(22), started, reduceScan)).event.id).toBe('1');
-    });
-});
-
 describe('in-memory scan store: retention', () => {
     const at = { time: 0 };
     const clock = { now: () => new Date(at.time) };
     const id = (n: number) => `scan-${String(n).padStart(17, '0')}`;
     const snapshot = (n: number) => emptySnapshot({ publicId: id(n), url: 'https://example.com/', domain: 'example.com', createdAt: FIXED_TIME.toISOString(), totalChecks: 3 });
-    const finish = (store: ReturnType<typeof createInMemoryScanStore>, n: number) =>
-        store.publish(id(n), { type: 'scan.failed', ts: FIXED_TIME.toISOString(), data: { reason: 'unreachable' } }, reduceScan);
+    const finish = (store: ReturnType<typeof createInMemoryScanStore>, n: number) => store.publish(id(n), { type: 'scan.failed', ts: FIXED_TIME.toISOString(), data: { reason: 'unreachable' } });
 
     it('forgets a finished scan after the retention, and keeps a running one', async () => {
         at.time = 0;

@@ -1,7 +1,7 @@
 import type { Locale } from '@lib/i18n/switchLocalePath';
 import { m } from '@paraglide/messages.js';
 
-type CheckText = { title: string; explanation: string };
+export type CheckText = { title: string; explanation: string };
 
 /**
  * The human text of every check, by `checkId`: what it is, why it matters and

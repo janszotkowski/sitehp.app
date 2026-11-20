@@ -1,4 +1,4 @@
-import { CHECKS, SCORE_MODEL_VERSION, catalogFor, domainToUnicode, scoreBand, scoreBreakdown, simulateFix, type Category, type ScanSnapshot } from '@sitehp.app/core/browser';
+import { CHECKS, SCORE_MODEL_VERSION, domainToUnicode, scoreBand, simulateFix, type Category, type ScanSnapshot } from '@sitehp.app/core/browser';
 import { Link, createFileRoute, getRouteApi } from '@tanstack/react-router';
 import { useCallback, useState, type ReactElement } from 'react';
 import { CategoryScores } from '@components/CategoryScores';
@@ -19,12 +19,12 @@ import { printPathOf } from '@lib/reportPrint';
 import { pageHead } from '@lib/pageHead';
 import { clip } from '@lib/seo';
 import { bandTitle } from '@lib/reportTitles';
-import { blockedStatus, filterCounts, reportRows } from '@lib/reportModel';
+import { filterCounts } from '@lib/reportModel';
 import { failureReasonMessage } from '@lib/scanFailure';
 import { safeExternalHref } from '@lib/scanInput';
 import { scoreColorStyle } from '@lib/scoreStyle';
 import { technologyNames } from '@lib/technologyNames';
-import { olderScoreModel } from '@lib/scanSnapshot';
+import { reportView } from '@lib/reportView';
 import { useScan } from '@lib/useScan';
 import { m } from '@paraglide/messages.js';
 import { getLocale } from '@paraglide/runtime.js';
@@ -42,16 +42,8 @@ const ReportPageView = (props: ReportViewProps) => {
     // The name as the person typed it; the ASCII form the address really carries is shown too, so a look-alike name cannot pass for another.
     const domain = domainToUnicode(snapshot.domain);
     const technologies = snapshot.technologies ?? [];
-    // A customized scan shows only the checks it ran; the rest were never asked for, not skipped.
-    const rows = reportRows(snapshot.checks, snapshot.status !== 'running', catalogFor(snapshot.selectedChecks));
-    const customized = snapshot.selectedChecks !== undefined;
+    const { rows, customized, blocked, olderModel, breakdown } = reportView(snapshot);
     const review = filterCounts(rows).review;
-    // A bot wall: there is no score to show, only the status the site turned the scanner away with.
-    const blocked = blockedStatus(snapshot.checks);
-    // The same model the HP comes from, so the categories always add up to the ring; null with no score (nothing ran, blocked).
-    // A report scored with an earlier model keeps its HP, but today's weights would no longer add its categories up to it.
-    const olderModel = olderScoreModel(snapshot);
-    const breakdown = olderModel === undefined ? scoreBreakdown(snapshot.checks) : null;
     const outcome = ended
         ? m.report_follow_ended({}, { locale })
         : failed

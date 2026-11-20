@@ -1,6 +1,6 @@
 import { SCORE_MODEL_VERSION, isTerminalScanEvent, type ScanEvent, type ScanSnapshot } from '@sitehp.app/core';
 import { systemClock, type Clock } from '@platform/ports.ts';
-import { ScanFinishedError, foldForRun, type JobQueue, type ScanJob, type ScanStore, type SiteLog, type SiteRecord } from '@modules/scans/ports.ts';
+import { appendEvent, type AppendedEvents, type JobQueue, type ScanJob, type ScanStore, type SiteLog, type SiteRecord } from '@modules/scans/ports.ts';
 
 type Entry = { snapshot: ScanSnapshot; log: ScanEvent[]; finishedAt?: number };
 
@@ -98,31 +98,22 @@ export const createInMemoryScanStore = ({ clock, ttlMs, maxScans }: ScanRetentio
             return Promise.resolve(removed);
         },
 
-        publish: (publicId, draft, plainFold, derive, runId) => {
-            const fold = foldForRun(publicId, plainFold, runId);
+        publish: (publicId, draft, derive, runId) => {
             const entry = scans.get(publicId);
             if (entry === undefined) return Promise.reject(new Error(`unknown scan ${publicId}`));
-            if (entry.snapshot.status !== 'running') return Promise.reject(new ScanFinishedError(publicId));
-            // Ids are the 1-based position in the log, so a reader resumes by number.
-            const event = { ...draft, id: String(entry.log.length + 1) } as ScanEvent;
             // Everything that can throw runs before anything changes: the log and the snapshot move together or not at all.
-            let snapshot: ScanSnapshot;
-            let followUp: ScanEvent | undefined;
+            let appended: AppendedEvents;
             try {
-                snapshot = fold(entry.snapshot, event);
-                const next = derive?.(snapshot);
-                if (next !== undefined) {
-                    followUp = { ...next, id: String(entry.log.length + 2) } as ScanEvent;
-                    snapshot = fold(snapshot, followUp);
-                }
+                appended = appendEvent(publicId, entry.snapshot, draft, derive, runId);
             } catch (error) {
                 return Promise.reject(error instanceof Error ? error : new Error(String(error)));
             }
+            const { event, followUp, snapshot } = appended;
             entry.log.push(event, ...(followUp === undefined ? [] : [followUp]));
             entry.snapshot = snapshot;
             if (isTerminalScanEvent(followUp ?? event)) entry.finishedAt = clock.now().getTime();
             wake(publicId);
-            return Promise.resolve({ event, ...(followUp === undefined ? {} : { followUp }), snapshot });
+            return Promise.resolve(appended);
         },
 
         follow: async function* (publicId, afterId, signal) {

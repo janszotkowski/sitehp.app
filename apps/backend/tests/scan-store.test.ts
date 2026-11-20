@@ -1,10 +1,10 @@
-import { SCORE_MODEL_VERSION, emptySnapshot, reduceScan, type ScanSnapshot } from '@sitehp.app/core';
+import { SCORE_MODEL_VERSION, emptySnapshot, type ScanSnapshot } from '@sitehp.app/core';
 import { eq } from 'drizzle-orm';
 import { scans } from '@modules/scans/infrastructure/postgres/schema.ts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createInMemoryScanStore, createInMemorySiteLog } from '@modules/scans/infrastructure/in-memory.ts';
 import { createPostgresScanStore, createPostgresSiteLog } from '@modules/scans/infrastructure/postgres/stores.ts';
-import { RunTakenOverError, ScanFinishedError, type ScanStore, type SiteLog } from '@modules/scans/ports.ts';
+import { RunTakenOverError, ScanFinishedError, appendEvent, type ScanStore, type SiteLog } from '@modules/scans/ports.ts';
 import { FIXED_TIME, testDatabase } from '@tests/helpers.ts';
 import type { Database } from '@modules/scans/infrastructure/postgres/connect.ts';
 
@@ -44,35 +44,22 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const store = make();
         const publicId = id();
         await store.create(snapshot(publicId));
-        const first = await store.publish(publicId, started, reduceScan);
+        const first = await store.publish(publicId, started);
         expect(first.event.id).toBe('1');
         expect(first.snapshot.lastEventId).toBe('1');
-        const second = await store.publish(publicId, failed, reduceScan);
+        const second = await store.publish(publicId, failed);
         expect(second.event.id).toBe('2');
         expect(await store.get(publicId)).toEqual(second.snapshot);
         expect(second.snapshot).toMatchObject({ status: 'failed', failureReason: 'unreachable' });
-    });
-
-    it('changes neither the log nor the snapshot when folding fails', async () => {
-        const store = make();
-        const publicId = id();
-        await store.create(snapshot(publicId));
-        await expect(
-            store.publish(publicId, started, () => {
-                throw new Error('fold failed');
-            }),
-        ).rejects.toThrow('fold failed');
-        expect(await store.get(publicId)).toEqual(snapshot(publicId));
-        expect((await store.publish(publicId, started, reduceScan)).event.id).toBe('1');
     });
 
     it('appends an event derived from the folded snapshot in the same step, right after it', async () => {
         const store = make();
         const publicId = id();
         await store.create(snapshot(publicId));
-        await store.publish(publicId, started, reduceScan);
+        await store.publish(publicId, started);
         const check = { type: 'page.fetched', ts: at, data: { headers: { a: '1' } } } as const;
-        const result = await store.publish(publicId, check, reduceScan, (folded) => ({ type: 'page.fetched', ts: at, data: { headers: { b: String(folded.lastEventId) } } }));
+        const result = await store.publish(publicId, check, (folded) => ({ type: 'page.fetched', ts: at, data: { headers: { b: String(folded.lastEventId) } } }));
         expect([result.event.id, result.followUp?.id]).toEqual(['2', '3']);
         // The follow-up saw the snapshot with the first event already in it.
         expect(result.snapshot).toMatchObject({ lastEventId: '3', responseHeaders: { b: '2' } });
@@ -84,7 +71,7 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         }
         expect(ids).toEqual(['1', '2', '3']);
         // Nothing derived: one event, as before.
-        expect((await store.publish(publicId, check, reduceScan, () => undefined)).followUp).toBeUndefined();
+        expect((await store.publish(publicId, check, () => undefined)).followUp).toBeUndefined();
     });
 
     it('appends neither event when deriving the second one fails', async () => {
@@ -92,16 +79,16 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const publicId = id();
         await store.create(snapshot(publicId));
         await expect(
-            store.publish(publicId, started, reduceScan, () => {
+            store.publish(publicId, started, () => {
                 throw new Error('derive failed');
             }),
         ).rejects.toThrow('derive failed');
         expect(await store.get(publicId)).toEqual(snapshot(publicId));
-        expect((await store.publish(publicId, started, reduceScan)).event.id).toBe('1');
+        expect((await store.publish(publicId, started)).event.id).toBe('1');
     });
 
     it('refuses to publish to a scan that does not exist', async () => {
-        await expect(make().publish(id(), started, reduceScan)).rejects.toThrow('unknown scan');
+        await expect(make().publish(id(), started)).rejects.toThrow('unknown scan');
     });
 
     // PGlite has one connection and runs transactions one after another, so this checks the sequence, not the row lock (`FOR UPDATE`)
@@ -110,7 +97,7 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const store = make();
         const publicId = id();
         await store.create(snapshot(publicId));
-        const results = await Promise.all(Array.from({ length: 8 }, () => store.publish(publicId, { type: 'page.fetched', ts: at, data: { headers: {} } }, reduceScan)));
+        const results = await Promise.all(Array.from({ length: 8 }, () => store.publish(publicId, { type: 'page.fetched', ts: at, data: { headers: {} } })));
         expect(results.map((result) => Number(result.event.id)).sort((left, right) => left - right)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     });
 
@@ -118,8 +105,8 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const store = make();
         const publicId = id();
         await store.create(snapshot(publicId));
-        await store.publish(publicId, started, reduceScan);
-        await store.publish(publicId, failed, reduceScan);
+        await store.publish(publicId, started);
+        await store.publish(publicId, failed);
         const read = async (after?: string) => {
             const ids: string[] = [];
             for await (const event of store.follow(publicId, after, new AbortController().signal)) ids.push(event.id);
@@ -139,8 +126,8 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const reading = (async () => {
             for await (const event of store.follow(publicId, undefined, new AbortController().signal)) seen.push(event.type);
         })();
-        await store.publish(publicId, started, reduceScan);
-        await store.publish(publicId, failed, reduceScan);
+        await store.publish(publicId, started);
+        await store.publish(publicId, failed);
         await reading;
         expect(seen).toEqual(['scan.started', 'scan.failed']);
     });
@@ -161,10 +148,10 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const store = make();
         const publicId = id();
         await store.create(snapshot(publicId));
-        await store.publish(publicId, started, reduceScan);
-        await store.publish(publicId, failed, reduceScan);
+        await store.publish(publicId, started);
+        await store.publish(publicId, failed);
         const before = await store.get(publicId);
-        await expect(store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 100 } }, reduceScan)).rejects.toBeInstanceOf(ScanFinishedError);
+        await expect(store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 100 } })).rejects.toBeInstanceOf(ScanFinishedError);
         expect(await store.get(publicId)).toEqual(before);
         const events = [];
         for await (const event of store.follow(publicId, undefined, new AbortController().signal)) events.push(event.type);
@@ -180,11 +167,11 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const oldTime = new Date(FIXED_TIME.getTime() - 3_600_000);
         for (const publicId of [lost, busy, done]) await store.create(snapshot(publicId, oldTime));
         await store.create(snapshot(fresh));
-        await store.publish(lost, { ...started, ts: oldTime.toISOString() }, reduceScan);
+        await store.publish(lost, { ...started, ts: oldTime.toISOString() });
         // Created long ago, but its run published a minute ago: still alive.
-        await store.publish(busy, { ...started, ts: oldTime.toISOString() }, reduceScan);
-        await store.publish(busy, { ...started, ts: new Date(FIXED_TIME.getTime() - 30_000).toISOString() }, reduceScan);
-        await store.publish(done, failed, reduceScan);
+        await store.publish(busy, { ...started, ts: oldTime.toISOString() });
+        await store.publish(busy, { ...started, ts: new Date(FIXED_TIME.getTime() - 30_000).toISOString() });
+        await store.publish(done, failed);
         const stale = await store.listRunningIdleSince(new Date(FIXED_TIME.getTime() - 60_000));
         expect(stale).toContain(lost);
         expect(stale).not.toContain(busy);
@@ -197,17 +184,17 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const publicId = id();
         await store.create(snapshot(publicId));
         // The API's scan.started names no run.
-        await store.publish(publicId, started, reduceScan);
+        await store.publish(publicId, started);
         const headers = { type: 'page.fetched', ts: at, data: { headers: {} } } as const;
-        expect((await store.publish(publicId, headers, reduceScan, undefined, 'run-a')).snapshot.runId).toBe('run-a');
-        await expect(store.publish(publicId, headers, reduceScan, undefined, 'run-b')).rejects.toBeInstanceOf(RunTakenOverError);
+        expect((await store.publish(publicId, headers, undefined, 'run-a')).snapshot.runId).toBe('run-a');
+        await expect(store.publish(publicId, headers, undefined, 'run-b')).rejects.toBeInstanceOf(RunTakenOverError);
         // A stalled run's job handed to another worker: its scan.started takes the scan over, and the old run is refused from then on.
-        await store.publish(publicId, { ...started, data: { ...started.data, runId: 'run-b' } }, reduceScan, undefined, 'run-b');
+        await store.publish(publicId, { ...started, data: { ...started.data, runId: 'run-b' } }, undefined, 'run-b');
         const before = await store.get(publicId);
-        await expect(store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 1 } }, reduceScan, undefined, 'run-a')).rejects.toBeInstanceOf(ScanFinishedError);
+        await expect(store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 1 } }, undefined, 'run-a')).rejects.toBeInstanceOf(ScanFinishedError);
         expect(await store.get(publicId)).toEqual(before);
         // Without a run (the reaper) an event is taken as before.
-        expect((await store.publish(publicId, failed, reduceScan)).snapshot).toMatchObject({ status: 'failed', runId: 'run-b' });
+        expect((await store.publish(publicId, failed)).snapshot).toMatchObject({ status: 'failed', runId: 'run-b' });
     });
 
     it('hands out a recent scan only when it was made with the current score model', async () => {
@@ -215,11 +202,11 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const url = `https://model-${_name === 'PostgreSQL' ? 'p' : 'm'}.example.com/`;
         const publicId = id();
         await store.create({ ...snapshot(publicId), url });
-        await store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 90, scoreModelVersion: SCORE_MODEL_VERSION } }, reduceScan);
+        await store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 90, scoreModelVersion: SCORE_MODEL_VERSION } });
         expect(await store.findRecent(url, new Date(FIXED_TIME.getTime() - 60_000))).toMatchObject({ publicId, scoreModelVersion: SCORE_MODEL_VERSION });
         const older = id();
         await store.create({ ...snapshot(older, new Date(FIXED_TIME.getTime() + 1000)), url });
-        await store.publish(older, { type: 'scan.completed', ts: at, data: { score: 90, scoreModelVersion: SCORE_MODEL_VERSION - 1 } }, reduceScan);
+        await store.publish(older, { type: 'scan.completed', ts: at, data: { score: 90, scoreModelVersion: SCORE_MODEL_VERSION - 1 } });
         if (_name === 'PostgreSQL')
             await database.db
                 .update(scans)
@@ -234,8 +221,8 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const scanOf = async (createdAt: Date, end: 'completed' | 'failed' | 'running') => {
             const publicId = id();
             await store.create({ ...snapshot(publicId, createdAt), url });
-            if (end === 'completed') await store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 90 } }, reduceScan);
-            if (end === 'failed') await store.publish(publicId, failed, reduceScan);
+            if (end === 'completed') await store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 90 } });
+            if (end === 'failed') await store.publish(publicId, failed);
             return publicId;
         };
         const minutesAgo = (minutes: number) => new Date(FIXED_TIME.getTime() - minutes * 60_000);
@@ -266,7 +253,7 @@ describe.each(stores)('scan store: %s', (_name, make) => {
         const recent = id();
         await store.create(snapshot(old, new Date(FIXED_TIME.getTime() - 40 * 86_400_000)));
         await store.create(snapshot(recent));
-        await store.publish(old, started, reduceScan);
+        await store.publish(old, started);
         const reading = (async () => {
             for await (const event of store.follow(old, '1', new AbortController().signal)) void event;
         })();
@@ -282,7 +269,7 @@ describe('PostgreSQL scan store: what older rows lack', () => {
         const store = createPostgresScanStore(database.db, 20);
         const publicId = 'old-row'.padEnd(22, '0');
         await store.create(snapshot(publicId));
-        await store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 70 } }, reduceScan);
+        await store.publish(publicId, { type: 'scan.completed', ts: at, data: { score: 70 } });
         const raw = (await store.get(publicId)) as ScanSnapshot;
         const { scoreModelVersion: _version, ...old } = raw;
         await database.db.update(scans).set({ snapshot: old, engineVersion: 2 }).where(eq(scans.publicId, publicId));
@@ -375,10 +362,39 @@ describe('PostgreSQL scan store: a follower in another process', () => {
         // The follower's own look is a minute away: only the signal can wake it.
         await new Promise((resolve) => setTimeout(resolve, 30));
         const startedAt = performance.now();
-        await worker.publish(publicId, started, reduceScan);
-        await worker.publish(publicId, failed, reduceScan);
+        await worker.publish(publicId, started);
+        await worker.publish(publicId, failed);
         await reading;
         expect(seen).toEqual(['scan.started', 'scan.failed']);
         expect(performance.now() - startedAt).toBeLessThan(2000);
+    });
+});
+
+describe('appendEvent', () => {
+    const publicId = 'x'.repeat(22);
+    const at = FIXED_TIME.toISOString();
+    const base = emptySnapshot({ publicId, url: 'https://example.com/', domain: 'example.com', createdAt: at, totalChecks: 3 });
+    const started = { type: 'scan.started', ts: at, data: { url: 'https://example.com/', domain: 'example.com', totalChecks: 3 } } as const;
+
+    it('numbers the event after the last one, and its follow-up right after it', () => {
+        const first = appendEvent(publicId, base, started);
+        expect(first.event.id).toBe('1');
+        const second = appendEvent(publicId, first.snapshot, { type: 'page.fetched', ts: at, data: { headers: {} } }, () => ({ type: 'page.fetched', ts: at, data: { headers: {} } }));
+        expect([second.event.id, second.followUp?.id, second.snapshot.lastEventId]).toEqual(['2', '3', '3']);
+    });
+
+    it('refuses an ended scan, and a run that was taken over', () => {
+        const ended = appendEvent(publicId, base, { type: 'scan.failed', ts: at, data: { reason: 'unreachable' } }).snapshot;
+        expect(() => appendEvent(publicId, ended, started)).toThrow(ScanFinishedError);
+        const owned = appendEvent(publicId, base, started, undefined, 'run-a').snapshot;
+        expect(() => appendEvent(publicId, owned, { type: 'page.fetched', ts: at, data: { headers: {} } }, undefined, 'run-b')).toThrow(RunTakenOverError);
+    });
+
+    it('lets a failing fold through, so a store writes nothing', () => {
+        expect(() =>
+            appendEvent(publicId, base, started, undefined, undefined, () => {
+                throw new Error('fold failed');
+            }),
+        ).toThrow('fold failed');
     });
 });

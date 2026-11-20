@@ -1,4 +1,4 @@
-import type { CertificateInfo, FetchedPage, ScanEvent, ScanFailureReason, ScanSnapshot } from '@sitehp.app/core';
+import { reduceScan, type CertificateInfo, type FetchedPage, type ScanEvent, type ScanFailureReason, type ScanSnapshot } from '@sitehp.app/core';
 
 /** An event as the use-case describes it; the store assigns the id. */
 export type ScanEventDraft = Omit<ScanEvent, 'id'>;
@@ -17,22 +17,12 @@ export type ScanStore = {
     create: (snapshot: ScanSnapshot) => Promise<void>;
     get: (publicId: string) => Promise<ScanSnapshot | undefined>;
     /**
-     * Atomically assigns the next id to the event, appends it to the log and replaces the stored
-     * snapshot with `fold(current, event)`. Either both change or neither does: if `fold` throws
-     * or the write fails, the log and the snapshot stay as they were. A scan that has ended takes no more events: the call
-     * rejects with `ScanFinishedError` (a reaped scan whose worker still runs, a job run twice).
-     * `derive` may add one more event derived from the folded snapshot (the score after a check); it is appended in the same step,
-     * and `followUp` is that event. The returned snapshot includes it.
-     * `runId` is the worker run that publishes (see `foldForRun`): an event of a run that was taken over rejects with `RunTakenOverError`.
-     * Without it (the API, the reaper) the event is not tied to a run.
+     * Applies `appendEvent` to the stored scan under a lock and writes the result: the event (and its follow-up) is appended to the
+     * log and the snapshot replaced in one step. Either both change or neither does: if the rule refuses or the write fails, the log
+     * and the snapshot stay as they were. Rejects with `ScanFinishedError` for a scan that has ended, `RunTakenOverError` for a run
+     * that was taken over, and an error for an unknown scan.
      */
-    publish: (
-        publicId: string,
-        draft: ScanEventDraft,
-        fold: (current: ScanSnapshot, event: ScanEvent) => ScanSnapshot,
-        derive?: (snapshot: ScanSnapshot) => ScanEventDraft | undefined,
-        runId?: string,
-    ) => Promise<{ event: ScanEvent; followUp?: ScanEvent; snapshot: ScanSnapshot }>;
+    publish: (publicId: string, draft: ScanEventDraft, derive?: (snapshot: ScanSnapshot) => ScanEventDraft | undefined, runId?: string) => Promise<AppendedEvents>;
     /**
      * Replays everything after `afterId`, then waits for new events, and ends after a terminal
      * one, including when the terminal event is at or before `afterId` (a reader resuming after
@@ -141,11 +131,11 @@ export class RunTakenOverError extends ScanFinishedError {
 }
 
 /**
- * The run rule a store applies under its lock, around the fold. The first event of a run claims a scan no run owns yet (the API's
- * `scan.started` names none); a `scan.started` of a run takes the scan over; any other event of a run that does not own the scan is refused.
+ * The run rule, around the fold. The first event of a run claims a scan no run owns yet (the API's `scan.started` names none);
+ * a `scan.started` of a run takes the scan over; any other event of a run that does not own the scan is refused.
  * Without `runId` the fold is unchanged.
  */
-export const foldForRun =
+const foldForRun =
     (publicId: string, fold: (current: ScanSnapshot, event: ScanEvent) => ScanSnapshot, runId: string | undefined) =>
     (current: ScanSnapshot, event: ScanEvent): ScanSnapshot => {
         if (runId === undefined) return fold(current, event);
@@ -153,3 +143,33 @@ export const foldForRun =
         if (owner !== null && owner !== runId && event.type !== 'scan.started') throw new RunTakenOverError(publicId);
         return { ...fold(current, event), runId };
     };
+
+export type AppendedEvents = { event: ScanEvent; followUp?: ScanEvent; snapshot: ScanSnapshot };
+
+/**
+ * What appending one event does to a scan, worked out before anything is written: a scan that has ended takes no more events
+ * (`ScanFinishedError`: a reaped scan whose worker still runs, a job run twice); the event gets the id after the snapshot's last one (ids are the
+ * 1-based position in the log, so a reader resumes by number) and is folded into the snapshot under the run rule (`runId`: the worker run
+ * that publishes; without it, the API and the reaper, the event is not tied to a run). `derive` may add one more event from the folded
+ * snapshot (the score after a check), numbered and folded right after it. Every store applies this under its own lock, then writes.
+ * `fold` is only for tests.
+ */
+export const appendEvent = (
+    publicId: string,
+    current: ScanSnapshot,
+    draft: ScanEventDraft,
+    derive?: (snapshot: ScanSnapshot) => ScanEventDraft | undefined,
+    runId?: string,
+    fold: (current: ScanSnapshot, event: ScanEvent) => ScanSnapshot = reduceScan,
+): AppendedEvents => {
+    if (current.status !== 'running') throw new ScanFinishedError(publicId);
+    const step = foldForRun(publicId, fold, runId);
+    const lastId = Number(current.lastEventId ?? 0);
+    const event = { ...draft, id: String(lastId + 1) } as ScanEvent;
+    let snapshot = step(current, event);
+    const next = derive?.(snapshot);
+    if (next === undefined) return { event, snapshot };
+    const followUp = { ...next, id: String(lastId + 2) } as ScanEvent;
+    snapshot = step(snapshot, followUp);
+    return { event, followUp, snapshot };
+};

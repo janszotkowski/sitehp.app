@@ -26,6 +26,7 @@ import type { Locale } from '@lib/i18n/switchLocalePath';
 import { KEY_OWNERS, reportKeyAction } from '@lib/reportKeys';
 import {
     filterCounts,
+    gainText,
     matchesQuery,
     REPORT_FILTERS,
     reportAsJson,
@@ -109,8 +110,8 @@ type GainCellProps = { id: string; gain: number; locale: Locale };
 
 const GainCell = (props: GainCellProps) => {
     const plan = useContext(PlanContext);
-    const gain = m.report_gain({ gain: props.gain }, { locale: props.locale });
-    if (props.gain <= 0) return <span className={'tabular-nums'}>—</span>;
+    const gain = gainText(props.gain, props.locale);
+    if (props.gain <= 0) return <span className={'tabular-nums'}>{gain}</span>;
     if (plan === undefined) return <span className={'tabular-nums'}>{gain}</span>;
     return (
         // Its own control inside the clickable row: ticking it plans the fix and leaves the detail closed.
