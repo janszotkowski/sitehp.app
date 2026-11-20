@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { emptySnapshot, reduceScan } from '@sitehp.app/core';
+import { emptySnapshot } from '@sitehp.app/core';
 import postgres from 'postgres';
 import { afterAll, describe, expect, it } from 'vitest';
 import { connectDatabase, type Database } from '@modules/scans/infrastructure/postgres/connect.ts';
@@ -44,7 +44,7 @@ describe.skipIf(url === undefined)('a real PostgreSQL', () => {
         const store = createPostgresScanStore(database.db);
         const publicId = 'scan-concurrent-000000';
         await store.create(emptySnapshot({ publicId, url: 'https://example.com/', domain: 'example.com', createdAt: FIXED_TIME.toISOString(), totalChecks: 3 }));
-        const results = await Promise.all(Array.from({ length: 16 }, () => store.publish(publicId, { type: 'page.fetched', ts: FIXED_TIME.toISOString(), data: { headers: {} } }, reduceScan)));
+        const results = await Promise.all(Array.from({ length: 16 }, () => store.publish(publicId, { type: 'page.fetched', ts: FIXED_TIME.toISOString(), data: { headers: {} } })));
         expect(results.map((result) => Number(result.event.id)).sort((left, right) => left - right)).toEqual(Array.from({ length: 16 }, (_, index) => index + 1));
     });
 

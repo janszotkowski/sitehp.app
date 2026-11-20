@@ -1,4 +1,4 @@
-import { reduceScan, type ScanSnapshot } from '@sitehp.app/core';
+import type { ScanSnapshot } from '@sitehp.app/core';
 import type { Logger } from '@platform/logger.ts';
 import type { ScanEventDraft, ScanStore } from '@modules/scans/ports.ts';
 
@@ -13,12 +13,12 @@ export type Publish = (publicId: string, draft: ScanEventDraft, derive?: (snapsh
 
 /**
  * The single path of every state change: the store appends the event (and the one `derive` adds) and folds it into the snapshot in one step.
- * `runId` ties the event to a worker run, so a run that was taken over cannot add to the scan (`foldForRun`).
+ * `runId` ties the event to a worker run, so a run that was taken over cannot add to the scan (`appendEvent`).
  */
 export const publisherOf =
     (store: ScanStore, logger: Logger): Publish =>
     (publicId, draft, derive, runId) =>
-        store.publish(publicId, draft, reduceScan, derive, runId).then(({ event, followUp, snapshot }) => {
+        store.publish(publicId, draft, derive, runId).then(({ event, followUp, snapshot }) => {
             for (const published of followUp === undefined ? [event] : [event, followUp]) logger.trace({ publicId, eventId: published.id, type: published.type }, 'event published');
             return snapshot;
         });

@@ -1,4 +1,4 @@
-import { CHECKS, emptySnapshot, reduceScan, SCORE_MODEL_VERSION } from '@sitehp.app/core';
+import { CHECKS, emptySnapshot, SCORE_MODEL_VERSION } from '@sitehp.app/core';
 import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import { startReaper } from '@composition/reaper.ts';
@@ -81,7 +81,7 @@ describe('a scan whose job was lost', () => {
         const { publicId } = await container.scans.create('example.com');
         // An hour in the queue, then a run that has just published: not stuck.
         clock.time += 60 * 60_000;
-        await createPostgresScanStore(database.db).publish(publicId, { type: 'page.fetched', ts: new Date(clock.time).toISOString(), data: { headers: {} } }, reduceScan);
+        await createPostgresScanStore(database.db).publish(publicId, { type: 'page.fetched', ts: new Date(clock.time).toISOString(), data: { headers: {} } });
         expect(await container.runner.reapStuck(180_000)).toBe(0);
         clock.time += 4 * 60_000;
         expect(await container.runner.reapStuck(180_000)).toBe(1);
@@ -137,8 +137,8 @@ describe('a scan run by another version than the one that queued it', () => {
         const publicId = 'scan-other-version-000';
         await store.create(emptySnapshot({ publicId, url: 'https://example.com/', domain: 'example.com', createdAt: FIXED_TIME.toISOString(), totalChecks }));
         const at = FIXED_TIME.toISOString();
-        await store.publish(publicId, { type: 'scan.started', ts: at, data: { url: 'https://example.com/', domain: 'example.com', totalChecks } }, reduceScan);
-        for (const draft of extra) await store.publish(publicId, draft, reduceScan);
+        await store.publish(publicId, { type: 'scan.started', ts: at, data: { url: 'https://example.com/', domain: 'example.com', totalChecks } });
+        for (const draft of extra) await store.publish(publicId, draft);
         await database.db.update(scans).set({ engineVersion: 0 }).where(eq(scans.publicId, publicId));
         return { database, publicId };
     };
@@ -186,7 +186,6 @@ describe('a run that another run has taken over', () => {
         await store.publish(
             publicId,
             { type: 'scan.started', ts: at, data: { url: 'https://example.com/', domain: 'example.com', totalChecks: CHECKS.length, runId: 'other-run' } },
-            reduceScan,
             undefined,
             'other-run',
         );

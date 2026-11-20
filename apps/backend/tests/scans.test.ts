@@ -1,17 +1,6 @@
 import { createRateLimiter } from '@platform/rate-limit.ts';
 import { getEventListeners } from 'node:events';
-import {
-    CHECK_IDS,
-    CRITICAL_CAP,
-    SCORE_MODEL_VERSION,
-    createScanResponseSchema,
-    hideQueryValues,
-    emptySnapshot,
-    errorResponseSchema,
-    reduceScan,
-    scanEventSchema,
-    scanSnapshotSchema,
-} from '@sitehp.app/core';
+import { CHECK_IDS, CRITICAL_CAP, SCORE_MODEL_VERSION, createScanResponseSchema, hideQueryValues, emptySnapshot, errorResponseSchema, scanEventSchema, scanSnapshotSchema } from '@sitehp.app/core';
 import { createApp } from '@composition/app.ts';
 import { createScanRunner } from '@modules/scans/application/scan-runner.ts';
 import { createScansService, type ScansDeps, type ScansService } from '@modules/scans/application/scans-service.ts';
@@ -258,7 +247,7 @@ describe('scans service', () => {
         const store = createInMemoryScanStore();
         const broken: ScanStore = {
             ...store,
-            publish: (publicId, draft, fold, derive) => (draft.type === 'scan.failed' ? Promise.reject(new Error('database away')) : store.publish(publicId, draft, fold, derive)),
+            publish: (publicId, draft, derive, runId) => (draft.type === 'scan.failed' ? Promise.reject(new Error('database away')) : store.publish(publicId, draft, derive, runId)),
         };
         const captured = captureLogs();
         const fetcher: SiteFetcher = { fetchPage: () => Promise.reject(new Error('fetcher exploded')), inspectCertificate: () => Promise.resolve(null), close: () => Promise.resolve() };
@@ -574,41 +563,12 @@ describe('scans service: fetching the scanned site', () => {
     });
 });
 
-describe('in-memory scan store', () => {
-    const base = () => emptySnapshot({ publicId: 'x'.repeat(22), url: 'https://example.com/', domain: 'example.com', createdAt: FIXED_TIME.toISOString(), totalChecks: 3 });
-    const started = { type: 'scan.started', ts: FIXED_TIME.toISOString(), data: { url: 'https://example.com/', domain: 'example.com', totalChecks: 3 } } as const;
-
-    it('appends the event and folds it into the snapshot in one step', async () => {
-        const store = createInMemoryScanStore();
-        await store.create(base());
-        const { event, snapshot } = await store.publish('x'.repeat(22), started, reduceScan);
-        expect(event.id).toBe('1');
-        expect(snapshot.lastEventId).toBe('1');
-        expect(await store.get('x'.repeat(22))).toEqual(snapshot);
-    });
-
-    it('changes neither the log nor the snapshot when folding fails', async () => {
-        const store = createInMemoryScanStore();
-        await store.create(base());
-        await expect(
-            store.publish('x'.repeat(22), started, () => {
-                throw new Error('fold failed');
-            }),
-        ).rejects.toThrow('fold failed');
-
-        expect(await store.get('x'.repeat(22))).toEqual(base());
-        // The next event still gets id 1: nothing was appended.
-        expect((await store.publish('x'.repeat(22), started, reduceScan)).event.id).toBe('1');
-    });
-});
-
 describe('in-memory scan store: retention', () => {
     const at = { time: 0 };
     const clock = { now: () => new Date(at.time) };
     const id = (n: number) => `scan-${String(n).padStart(17, '0')}`;
     const snapshot = (n: number) => emptySnapshot({ publicId: id(n), url: 'https://example.com/', domain: 'example.com', createdAt: FIXED_TIME.toISOString(), totalChecks: 3 });
-    const finish = (store: ReturnType<typeof createInMemoryScanStore>, n: number) =>
-        store.publish(id(n), { type: 'scan.failed', ts: FIXED_TIME.toISOString(), data: { reason: 'unreachable' } }, reduceScan);
+    const finish = (store: ReturnType<typeof createInMemoryScanStore>, n: number) => store.publish(id(n), { type: 'scan.failed', ts: FIXED_TIME.toISOString(), data: { reason: 'unreachable' } });
 
     it('forgets a finished scan after the retention, and keeps a running one', async () => {
         at.time = 0;
